@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
 <title>Bonne Pioche Facile — vos menus de la semaine</title>
 <link rel="manifest" href="manifest.json">
 <meta name="theme-color" content="#7D4453">
@@ -51,7 +51,7 @@ body{
   background:rgba(255,253,251,.72); backdrop-filter:blur(6px);
   border-radius:20px; padding:5px 9px; box-shadow:0 6px 16px rgba(125,68,83,.14);
 }
-#sync-dot{width:8px;height:8px;border-radius:50%;background:#C9C1B2;display:none}
+#sync-dot{width:10px;height:10px;border-radius:50%;background:#C9C1B2;display:none;box-shadow:0 0 0 3px rgba(255,255,255,.55)}
 #btn-settings{background:none;border:none;cursor:pointer;padding:12px 11px;margin:-7px -4px;display:flex;color:var(--prune)}
 #btn-settings svg{width:19px;height:19px}
 /* ---------- Filigrane one-line ---------- */
@@ -108,18 +108,23 @@ body.simple #topbar{display:none}
 body.simple nav{height:66px;border-radius:26px}
 body.simple nav button{width:auto;min-width:76px;height:56px;flex-direction:column;gap:3px;border-radius:16px;display:flex}
 body.simple nav button svg{width:22px;height:22px}
-body.simple .nlbl{display:block;font-size:11px;font-weight:700;letter-spacing:.02em}
+body.simple .nlbl{display:block;font-size:12px;font-weight:700;letter-spacing:.02em}
 body.simple nav button[data-tab="favoris"],body.simple nav button[data-tab="recettes"]{display:none}
 body.simple{--nav-h:calc(66px + 16px + env(safe-area-inset-bottom))}
 body.simple .home-serre,body.simple .cout-chip{display:none}
 body.simple .home-mode button{height:70px;font-size:13px}
 body.simple .home-q{font-size:33px}
-body.simple .home-foot{font-size:13px;color:var(--encre-2)}
-body.simple .home-tile .ht-k{font-size:12px}
-body.simple .home-tile .ht-s{font-size:11.5px;min-height:0}
-body.simple .home-tile .stepper button{width:42px;height:42px;font-size:20px}
+body.simple .home-foot{font-size:13px;color:#5A4A50}
+body.simple .home-tile .ht-k{font-size:12.5px;opacity:1}
+body.simple .home-tile .ht-s{font-size:12px;min-height:0;opacity:1}
+body.simple .home-tile.c{background:#5C6B44} /* olive foncée : texte crème lisible */
+body.simple .home-tile.b{background:#F0C9B6;color:#3A2029} /* abricot clair : texte encre lisible */
+body.simple .home-tile.b .stepper button{background:rgba(58,32,41,.14)}
+body.simple .stepper button{width:44px;height:44px;min-width:44px;flex-shrink:0;font-size:20px}
+body.simple .home-total span{font-size:12.5px;color:var(--prune)}
+body.simple .home-date{color:var(--prune)}
 body.simple .home-cta{margin-top:auto}
-body.simple .sub{font-size:15.5px}
+body.simple .sub{font-size:15.5px;color:#5A4A50}
 body.simple h2.section{font-size:27px}
 body.simple .caps{font-size:12px}
 body.simple #btn-super{display:none}
@@ -131,9 +136,45 @@ body.simple .gq{font-size:12.5px}
 body.simple .gtile{min-height:112px}
 body.simple .rayon-title .rname{font-size:17px}
 body.simple .stamp.super{display:none}
-body.simple .card-foot .caps{font-size:11px}
+body.simple .card-foot .caps{font-size:12px;color:var(--prune)}
+body.simple .macro-strip .k,body.simple .macro-grid .k{font-size:12px}
+body.simple .alab{font-size:12.5px}
+body.simple .deck-back{width:44px;height:44px}
+body.simple .modal-close{width:44px;height:44px}
+body.simple .stamp.like{color:#5E7E3B;border-color:#5E7E3B}
+body.simple .cell .dnum{color:var(--encre)}
+body.simple .cell.today .dnum{color:var(--tomate)}
+body.simple .cell .todaytag{font-size:12px;color:#8F3B31}
+body.simple .fp .sub a,body.simple .modal-body .sub a{display:inline-block;padding:13px 10px}
+body.simple .deck-head .count{background:#F5E7E0}
+body.simple .cell.rotcell .rline span{font-size:12px}
+body.simple .add-item-row input,body.simple .add-item-row .btn{min-height:44px}
+body.simple .cell .dw{color:#5A4A50}
+body.simple .cell .lun{color:var(--prune)}
+body.simple .bc-grid span{font-size:12px;color:var(--prune)}
+body.simple .courses-tot .cs{font-size:12.5px;color:#5A4A50}
+body.simple .rayon-title .n{font-size:12px}
+body.simple nav button .bdg{font-size:12px;min-width:20px;height:20px;background:#B04A3E}
 body.simple .vtitle{display:none}
 body.simple .deck-wrap{padding-left:16px}
+/* lisibilité mode facile : contrastes et cibles tactiles */
+body.simple .gtile:not(.done){color:var(--encre)!important}
+body.simple .gtile .gq{opacity:1}
+body.simple .gtile .gdel{font-size:15px;opacity:.75;padding:12px 13px}
+body.simple .cell .dw{font-size:12px}
+body.simple .cell .lun{font-size:12px}
+body.simple .cell .swapb{width:44px;height:44px;border-radius:13px}
+body.simple .cell .swapb svg{width:17px;height:17px}
+body.simple .cell .movb{display:none} /* réordonner les jours : superflu en mode facile, cibles trop petites */
+body.simple .r-row .tt .mm{font-size:12.5px}
+body.simple .phase-note{font-size:13px}
+body.simple #toast{font-size:15.5px}
+/* mode facile : pas de favoris (onglet caché), on retire donc tous les cœurs */
+body.simple .r-row .heart,body.simple .fav-tag,body.simple .modal-fav,body.simple .mstamp{display:none}
+/* texte plus grand (bascule Aa) */
+body.simple.xl #main{zoom:1.15}
+.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
+.xl-chip.on{background:var(--prune);color:var(--creme);border-color:var(--prune)}
 .alab{display:none;font-size:11px;font-weight:800}
 /* appairage facile */
 .fp h3{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.15;color:var(--encre)}
@@ -150,12 +191,12 @@ body.simple .deck-wrap{padding-left:16px}
   justify-content:center;box-shadow:var(--sh-soft);margin-bottom:22px}
 #onboard .ob-picto svg{width:64px;height:64px}
 #onboard h2{font-family:var(--font-display);font-weight:600;font-size:30px;line-height:1.15;color:var(--encre);max-width:300px}
-#onboard p{font-size:16.5px;line-height:1.6;color:var(--encre-2);max-width:300px;margin-top:12px}
+#onboard p{font-size:16.5px;line-height:1.6;color:#5A4A50;max-width:300px;margin-top:12px}
 #onboard .ob-dots{display:flex;gap:8px;margin:26px 0}
 #onboard .ob-dots i{width:10px;height:10px;border-radius:50%;background:rgba(125,68,83,.2)}
 #onboard .ob-dots i.on{background:var(--prune)}
 #onboard .btn{min-width:220px;font-size:17px;padding:16px 22px}
-#onboard .ob-skip{margin-top:14px;background:none;border:none;font-size:14px;color:var(--rose);text-decoration:underline;cursor:pointer;padding:8px}
+#onboard .ob-skip{margin-top:10px;background:none;border:none;font-size:15px;min-height:44px;color:var(--prune);text-decoration:underline;cursor:pointer;padding:10px 14px}
 /* ---------- Boutons ---------- */
 .btn{
   border:none;cursor:pointer;font-family:var(--font-body);font-weight:700;font-size:16px;
@@ -264,6 +305,27 @@ body.simple .deck-wrap{padding-left:16px}
 .home-total span{display:block;font-size:11px;font-weight:800;letter-spacing:.15em;text-transform:uppercase;color:var(--rose);margin-top:7px}
 .home-cta{margin-top:16px}
 .home-foot{text-align:center;font-size:11.5px;color:var(--rose);line-height:1.5;margin-top:12px}
+.duo-chip{display:flex;align-items:center;gap:7px;margin:10px auto 0;padding:9px 16px;min-height:40px;
+  border:1.5px solid rgba(125,68,83,.22);border-radius:999px;background:var(--blanc);color:var(--prune);
+  font-family:var(--font-body);font-weight:700;font-size:13.5px;cursor:pointer;animation:home-in .5s ease .6s both}
+.duo-chip svg{width:16px;height:16px;flex-shrink:0}
+body.simple .home-foot{display:block;font-size:14px}
+body.simple .duo-chip{font-size:15px;min-height:44px}
+@media (max-height:740px){
+  body.simple .home-date{display:none}
+  body.simple .home-q{font-size:22px}
+  body.simple .home-mode button{height:52px;font-size:12px}
+  body.simple .home-tile .stepper button{width:37px;height:37px;font-size:18px}
+  body.simple .home-tile .ht-v{font-size:31px;margin-top:4px}
+  body.simple .home-tile .ht-s{font-size:10px}
+  body.simple .home-total b{font-size:30px}
+  body.simple .home-total span{font-size:9.5px;margin-top:3px}
+  body.simple .home-tiles{margin-top:10px}
+  body.simple .home-foot{font-size:11.5px;margin-top:8px}
+  body.simple .chip-row{margin-top:5px;gap:6px}
+  body.simple .duo-chip{min-height:37px;font-size:13px;padding:6px 12px}
+  body.simple .home-cta.btn{padding:12px 22px;font-size:15px}
+}
 @media (max-height:740px){
   .home-q{font-size:25px}
   .home-total b{font-size:38px}
@@ -652,10 +714,11 @@ nav button.active svg{animation:popIc .3s ease}
 #toast{
   position:absolute;bottom:92px;left:50%;transform:translateX(-50%) translateY(16px);
   background:var(--prune-d);color:#FCEFE6;font-size:14px;font-weight:700;
-  padding:11px 20px;border-radius:30px;opacity:0;pointer-events:none;transition:all .25s;z-index:60;
-  white-space:nowrap;max-width:90%;
+  padding:11px 20px;border-radius:22px;opacity:0;pointer-events:none;transition:all .25s;z-index:60;
+  white-space:normal;text-align:center;line-height:1.4;width:max-content;max-width:min(90%,340px);
 }
 #toast.show{opacity:1;transform:translateX(-50%) translateY(0)}
+#toast.err{background:var(--tomate);color:#FFF3EF}
 .hidden{display:none!important}
 .empty-state{text-align:center;padding:44px 24px;display:flex;flex-direction:column;align-items:center;gap:10px;justify-content:center;min-height:70vh}
 .empty-state .emo{font-size:46px}
@@ -680,16 +743,16 @@ nav button.active svg{animation:popIc .3s ease}
     <section class="page" id="recettes-page"></section>
   </main>
 
-  <nav id="nav">
-    <button data-tab="pioche" class="active" title="Pioche"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="11" height="15" rx="2.5" transform="rotate(-8 8 12)"/><rect x="10" y="4" width="11" height="15" rx="2.5" transform="rotate(7 16 12)"/></svg><span class="nlbl">Choisir</span></button>
-    <button data-tab="semaine" title="Semaine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3.5 l0 4 M16 3.5 l0 4 M3.5 10.5 l17 0"/></svg><span class="nlbl">Semaine</span></button>
-    <button data-tab="courses" title="Courses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 l2.4 0 l2.2 10 l9.6 0 l2 -7.6 l-12.6 0"/><circle cx="10" cy="20" r="1.4" fill="currentColor" stroke="none"/><circle cx="16.6" cy="20" r="1.4" fill="currentColor" stroke="none"/></svg><span class="nlbl">Courses</span><span class="bdg hidden" id="courses-bdg"></span></button>
-    <button data-tab="favoris" title="Favoris"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 q-7 -4.6 -8.4 -9 q-1 -3.4 1.8 -5 q2.8 -1.6 5 .8 l1.6 1.8 l1.6 -1.8 q2.2 -2.4 5 -.8 q2.8 1.6 1.8 5 q-1.4 4.4 -8.4 9 Z"/></svg></button>
-    <button data-tab="recettes" title="Recettes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6 q-3 -2.4 -8 -1.6 l0 14 q5 -.8 8 1.6 q3 -2.4 8 -1.6 l0 -14 q-5 -.8 -8 1.6 Z"/><path d="M12 6 l0 14"/></svg></button>
+  <nav id="nav" aria-label="Navigation principale">
+    <button data-tab="pioche" class="active" title="Pioche" aria-label="Choisir les plats"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="5" width="11" height="15" rx="2.5" transform="rotate(-8 8 12)"/><rect x="10" y="4" width="11" height="15" rx="2.5" transform="rotate(7 16 12)"/></svg><span class="nlbl">Choisir</span></button>
+    <button data-tab="semaine" title="Semaine" aria-label="Menu de la semaine"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3.5" y="5" width="17" height="15.5" rx="3"/><path d="M8 3.5 l0 4 M16 3.5 l0 4 M3.5 10.5 l17 0"/></svg><span class="nlbl">Semaine</span></button>
+    <button data-tab="courses" title="Courses" aria-label="Liste de courses"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 6.5 l2.4 0 l2.2 10 l9.6 0 l2 -7.6 l-12.6 0"/><circle cx="10" cy="20" r="1.4" fill="currentColor" stroke="none"/><circle cx="16.6" cy="20" r="1.4" fill="currentColor" stroke="none"/></svg><span class="nlbl">Courses</span><span class="bdg hidden" id="courses-bdg"></span></button>
+    <button data-tab="favoris" title="Favoris" aria-label="Plats favoris"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 20 q-7 -4.6 -8.4 -9 q-1 -3.4 1.8 -5 q2.8 -1.6 5 .8 l1.6 1.8 l1.6 -1.8 q2.2 -2.4 5 -.8 q2.8 1.6 1.8 5 q-1.4 4.4 -8.4 9 Z"/></svg></button>
+    <button data-tab="recettes" title="Recettes" aria-label="Toutes les recettes"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 6 q-3 -2.4 -8 -1.6 l0 14 q5 -.8 8 1.6 q3 -2.4 8 -1.6 l0 -14 q-5 -.8 -8 1.6 Z"/><path d="M12 6 l0 14"/></svg></button>
   </nav>
 
-  <div class="modal-back" id="modal-back"><div class="modal" id="modal"></div></div>
-  <div id="toast"></div>
+  <div class="modal-back" id="modal-back"><div class="modal" id="modal" role="dialog" aria-modal="true"></div></div>
+  <div id="toast" role="status" aria-live="polite"></div>
 </div>
 
 <script>
@@ -748,6 +811,7 @@ const S = {
 };
 if (typeof SIMPLE !== "undefined" && SIMPLE) {
   document.body.classList.add("simple");
+  if (store.get("bp_xl", 0)) document.body.classList.add("xl");
   if (S.tab === "favoris" || S.tab === "recettes") S.tab = "pioche";
 }
 const save = {
@@ -784,7 +848,7 @@ function grad(r) {
 }
 const CAT_LABEL = { diner: "Dîner", petitdej: "Petit-déj", collation: "Collation" };
 const PHASES = [
-  { cat: "diner", titre: "Les dîners de la semaine", emoji: "🍲", note: "Chaque dîner est cuisiné en double : le soir à deux, et le lendemain midi en lunch." },
+  { cat: "diner", titre: "Les dîners de la semaine", emoji: "🍲", note: "Chaque dîner est cuisiné en double : mangé le soir, remangé le lendemain midi." },
   { cat: "petitdej", titre: "Les petits-déjeuners", emoji: "🍳", note: "Une rotation pour la semaine — vous les alternerez selon l'envie." },
   { cat: "collation", titre: "Les collations", emoji: "🥜", note: "Le carburant d'avant et d'après entraînement." }
 ];
@@ -796,8 +860,10 @@ const RAYON_EMOJI = { "Fruits & Légumes": "🥬", "Boucherie & Poisson": "🥩"
 const $ = sel => document.querySelector(sel);
 const esc = s => String(s == null ? "" : s).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
 function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1));[a[i], a[j]] = [a[j], a[i]]; } return a; }
-function toast(msg, ms) {
-  const t = $("#toast"); t.textContent = msg; t.classList.add("show");
+function toast(msg, ms, type) {
+  const t = $("#toast"); t.textContent = msg;
+  t.classList.toggle("err", type === "err");
+  t.classList.add("show");
   clearTimeout(toast._h); toast._h = setTimeout(() => t.classList.remove("show"), ms || 2600);
 }
 function burstConfetti() {
@@ -820,7 +886,7 @@ function fmtQte(q) {
   return (r % 1 === 0 ? String(Math.round(r)) : String(r).replace(".", ","));
 }
 function fbKey(s) {
-  return String(s).toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "")
+  return String(s).toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "")
     .replace(/[.#$\/\[\]%]/g, "").replace(/\s+/g, "_").replace(/[^a-z0-9_|-]/g, "") || "x";
 }
 function normNom(nom) {
@@ -998,7 +1064,11 @@ function avatarsHTML(together) {
   const i = homeInitials();
   return `<span class="home-av${together ? "" : " apart"}"><i class="p1">${esc(i.a)}</i><i class="p2">${esc(i.b)}</i></span>`;
 }
-const HOME_TILES = [
+const HOME_TILES = (typeof SIMPLE !== "undefined" && SIMPLE) ? [
+  { cat: "diner", cls: "a", emoji: "🍲", titre: "Dîners", sous: "cuisinés le soir, remangés le midi" },
+  { cat: "petitdej", cls: "b", emoji: "🍳", titre: "Matins", sous: "pour les petits-déjeuners" },
+  { cat: "collation", cls: "c", emoji: "🥜", titre: "En-cas", sous: "pour les petites faims" }
+] : [
   { cat: "diner", cls: "a", emoji: "🍲", titre: "Dîners", sous: "cuisinés ×2, relunchés" },
   { cat: "petitdej", cls: "b", emoji: "🍳", titre: "Matins", sous: "la rotation" },
   { cat: "collation", cls: "c", emoji: "🥜", titre: "En-cas", sous: "autour du sport" }
@@ -1042,10 +1112,12 @@ function renderPiocheSetup(page) {
           : "Une quinzaine de minutes à deux, et la semaine est réglée — menu, courses et batchs compris.")
     },
     remote: (typeof SIMPLE !== "undefined" && SIMPLE) ? {
-      q: "Chacun choisit sur<br>son téléphone. Vos <em>accords</em><br>font le menu.",
-      foot: remoteOn()
-        ? "Quand un plat vous plaît à tous les deux, c'est un match : il entre au menu tout seul."
-        : "La première fois, il faut relier vos deux téléphones : appuyez sur « C'est parti », on vous guide en deux questions."
+      q: "Chacun choisit sur<br>son téléphone. Vos <em>matchs</em><br>font le menu.",
+      foot: !remoteOn()
+        ? "La première fois, il faut relier vos deux téléphones : appuyez sur « C'est parti », on vous guide en deux questions."
+        : ((S.rnames && S.rnames[other(RC.me)] && S.rnames[other(RC.me)].nom)
+          ? `Vous êtes reliés avec ${esc(S.rnames[other(RC.me)].nom)}. Lancez une partie, ou attendez que la sienne apparaisse ici — l'écran se met à jour tout seul.`
+          : "Votre code est prêt. Dès que l'autre personne l'écrit dans son application, vos téléphones seront reliés.")
     } : {
       q: "Chacun ses envies,<br>de son côté. On <em>recoupe</em>.",
       foot: remoteOn()
@@ -1069,6 +1141,12 @@ function renderPiocheSetup(page) {
     </div>`}
     <button class="btn btn-primary btn-block home-cta" id="start-pioche">C'est parti</button>
     <div class="home-foot" id="home-foot">${TXT[mode].foot}</div>
+    ${(typeof SIMPLE !== "undefined" && SIMPLE) ? `<div class="chip-row">
+      ${remoteOn() ? `<button class="duo-chip" id="duo-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-9.5C5 7.5 7 6 9 6c1.5 0 2.5.8 3 2 .5-1.2 1.5-2 3-2 2 0 4 1.5 4 4.5 0 5-7 9.5-7 9.5z"/></svg>
+        Notre duo${(S.rnames && S.rnames[other(RC.me)] && S.rnames[other(RC.me)].nom) ? " · " + esc(S.rnames[other(RC.me)].nom) : ""}</button>` : ""}
+      <button class="duo-chip xl-chip${store.get("bp_xl", 0) ? " on" : ""}" id="xl-chip" role="switch" aria-checked="${!!store.get("bp_xl", 0)}">Aa · Texte plus grand</button>
+    </div>` : ""}
   </div>`;
   S.sessionTargets = t;
   page.querySelectorAll(".stepper button").forEach(b => b.addEventListener("click", () => {
@@ -1095,16 +1173,37 @@ function renderPiocheSetup(page) {
     if (mode === "remote") {
       if (!remoteOn()) {
         if (typeof SIMPLE !== "undefined" && SIMPLE) { openPairingFacile(); return; }
-        toast("Configure d'abord le foyer dans ⚙️ Réglages"); openSettings(); return;
+        toast("Configurez d'abord le foyer dans ⚙️ Réglages"); openSettings(); return;
       }
       if (S.rsession && !S.rsession.validated) { render(); return; }
-      const excl = Array.from(recentIds());
-      const ns = { id: Date.now(), targets: { ...t }, excl, votes: { p1: { _: 0 }, p2: { _: 0 } }, done: { p1: { _: 0 }, p2: { _: 0 } }, validated: false, createdBy: RC.me };
-      try { await api.put("session", ns); S.rsession = ns; _lastRoom = ""; toast("Pioche lancée — à vos swipes"); render(); }
-      catch (e) { syncErr(e); }
+      const btn = $("#start-pioche");
+      if (btn.dataset.busy) return;
+      btn.dataset.busy = "1";
+      try {
+        // garde anti-doublon : si l'autre vient de lancer une partie, on la rejoint au lieu de l'écraser
+        const deja = await api.get("session");
+        if (deja && !deja.validated) {
+          S.rsession = deja; _lastRoom = "";
+          toast(partnerName() !== "l'autre" ? `${partnerName()} a déjà lancé une partie — on vous y emmène` : "Une partie est déjà lancée — on vous y emmène", 3000);
+          render(); return;
+        }
+        const excl = Array.from(recentIds());
+        const ns = { id: Date.now() + "-" + Math.floor(Math.random() * 1e6), targets: { ...t }, excl, votes: { p1: { _: 0 }, p2: { _: 0 } }, done: { p1: { _: 0 }, p2: { _: 0 } }, validated: false, createdBy: RC.me };
+        await api.put("session", ns); S.rsession = ns; _lastRoom = ""; toast("Pioche lancée — à vos swipes"); render();
+      } catch (e) { syncErr(e); }
+      finally { delete btn.dataset.busy; }
       return;
     }
     startSession(t, "ensemble", null);
+  });
+  const dc = $("#duo-chip");
+  if (dc) dc.addEventListener("click", openDuoFacile);
+  const xc = $("#xl-chip");
+  if (xc) xc.addEventListener("click", () => {
+    const v = !store.get("bp_xl", 0);
+    store.set("bp_xl", v ? 1 : 0);
+    document.body.classList.toggle("xl", v);
+    xc.classList.toggle("on", v); xc.setAttribute("aria-checked", v);
   });
 }
 
@@ -1287,6 +1386,7 @@ function renderDeck(page) {
   <div class="deck-wrap">
     <div class="deck-head">
       <button class="deck-back" id="deck-back" title="Revenir à l'accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
+      ${(!duo && ses.undo && ses.undo.cat === cat && ses.idx > 0) ? `<button class="deck-back" id="deck-undo" title="Reprendre la dernière carte" aria-label="Reprendre la dernière carte">${UNDO_IC}</button>` : ""}
       <div class="dh-mid">${head}</div>
     </div>
     <div class="progress-dots">${dots}</div>
@@ -1310,6 +1410,8 @@ function renderDeck(page) {
   $("#deck-back").addEventListener("click", () => {
     S.session = null; save.session(); render(); toast("Pioche interrompue");
   });
+  const du = $("#deck-undo");
+  if (du) du.addEventListener("click", undoLocalSwipe);
   if (topCard) attachDrag(topCard);
 }
 function superAvailable() {
@@ -1345,8 +1447,8 @@ function cardHTML(r, depth) {
   const uc = univColor(r.univers);
   return `
   <div class="${cls}" data-id="${r.id}">
-    <div class="stamp like">MIAM</div>
-    <div class="stamp nope">PASSE</div>
+    <div class="stamp like">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "J'AIME" : "MIAM"}</div>
+    <div class="stamp nope">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "NON MERCI" : "PASSE"}</div>
     <div class="stamp super">⭐ OPTION</div>
     <span class="chev l">‹</span><span class="chev r">›</span>
     ${isFav(r.id) ? '<span class="fav-tag">Favori</span>' : ""}
@@ -1433,6 +1535,7 @@ function swipeOut(card, liked, dx, dy, superLike) {
     const cat = PHASES[ses.phase].cat;
     if (ses.mode === "duo") { duoVote(id, liked, superLike); return; }
     ses.idx += 1;
+    ses.undo = { cat, id, liked: !!liked, superLike: !!superLike };
     if (liked) {
       ses.liked[cat].push(id);
       if (superLike) {
@@ -1445,6 +1548,38 @@ function swipeOut(card, liked, dx, dy, superLike) {
     save.session(); render();
   }, 320);
 }
+/* reprendre la dernière carte (droit à l'erreur) */
+function undoLocalSwipe() {
+  const ses = S.session;
+  if (!ses || !ses.undo || ses.mode === "duo") return;
+  const u = ses.undo;
+  if (PHASES[ses.phase].cat !== u.cat || ses.idx <= 0) { ses.undo = null; save.session(); return; }
+  ses.idx -= 1;
+  if (u.liked) {
+    const arr = ses.liked[u.cat];
+    const k = arr.lastIndexOf(u.id);
+    if (k >= 0) arr.splice(k, 1);
+    if (u.superLike) {
+      delete ses.chosenBy[u.id];
+      if (ses.superUsed && ses.superUsed.solo) delete ses.superUsed.solo[u.cat];
+    }
+  }
+  // la carte reprise doit revenir sur le dessus de la pile
+  const q = ses.queues[u.cat];
+  const p = q.indexOf(u.id);
+  if (p !== ses.idx && p >= 0) { q.splice(p, 1); q.splice(ses.idx, 0, u.id); }
+  ses.undo = null;
+  save.session(); render(); toast("La carte est revenue — à vous de rejouer");
+}
+function undoRemoteSwipe() {
+  const rs = S.rswipe;
+  if (!rs || !rs.undo || rs.idx <= 0) return;
+  rs.idx -= 1;
+  delete rs.likes[rs.undo.id];
+  rs.undo = null;
+  store.set("bp_rswipe", rs); render(); toast("La carte est revenue — à vous de rejouer");
+}
+const UNDO_IC = `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14 4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>`;
 /* remonte dans la file les recettes qui mutualisent le mieux ce qui est déjà au menu */
 function reordonneFile(cat) {
   const ses = S.session;
@@ -1467,6 +1602,7 @@ function reordonneFile(cat) {
 }
 function nextPhase() {
   const ses = S.session;
+  ses.undo = null;
   if (ses.phase < PHASES.length - 1) {
     ses.phase += 1; ses.idx = 0; save.session(); render();
   } else { ses.finished = true; save.session(); render(); }
@@ -1497,7 +1633,7 @@ function budgetRecapHTML(recettes) {
     : `<div class="bc-sub">Fixez un objectif hebdomadaire dans les réglages pour suivre votre budget.</div>`}
     <div class="bc-grid">
       <div><b>${esc(eur(f.reel / Math.max(1, portions)))}</b><span>la portion</span></div>
-      <div><b>${esc(eur(gaspi))}</b><span>de rab acheté</span></div>
+      <div><b>${esc(eur(gaspi))}</b><span>de surplus acheté</span></div>
       <div><b>${portions}</b><span>portions</span></div>
     </div>
   </div>`;
@@ -1525,7 +1661,7 @@ function renderRecap(page) {
   <div class="pad">
     <h2 class="section" style="font-size:26px">Belle pioche !</h2>
     <div class="sub">${duo ? `${nMatch} match${nMatch > 1 ? "s" : ""} entre ${esc(ses.names.p1)} et ${esc(ses.names.p2)}. ` : ""}Voici votre sélection. Validez pour générer le menu de la semaine et la liste de courses.</div>
-    ${section("diner", "Dîners (× lunch du lendemain)")}
+    ${section("diner", "Dîners (× déjeuner du lendemain)")}
     ${section("petitdej", "Petits-déjeuners")}
     ${section("collation", "Collations")}
     ${budgetRecapHTML(dejaRetenues())}
@@ -1613,7 +1749,7 @@ function renderSemaine() {
       <span class="dnum">${dt.getDate()}</span><span class="dw">${JOURS_ABR[i]}</span>
       <span class="pastille" style="background:${mixWhite(uc.fg, .07)}">${pictoSVG(r, "picto")}</span>
       <div class="dish">${esc(r.nom)}</div>
-      <div class="lun">→ lunch ${JOURS_ABR[(i + 1) % 7].slice(0, 3).toLowerCase()}. midi</div>
+      <div class="lun">→ déjeuner de ${JOURS_ABR[(i + 1) % 7].slice(0, 3).toLowerCase()}.</div>
       <div class="cellfoot">${mov}<button class="swapb" data-swap="${i}" title="Remplacer">${SWAP_IC}</button></div>
     </div>`;
   }).join("");
@@ -1876,7 +2012,7 @@ function coursesTotalHTML() {
   return `<div class="courses-tot">
     <div><span class="caps">Panier estimé</span><div class="ct">${esc(eur(f.reel))}</div></div>
     <div class="cs">${cible ? (f.reel > cible ? "objectif " + esc(eur(cible)) + " dépassé" : esc(eur(cible - f.reel)) + " sous l'objectif") + "<br>" : ""}
-      dont ${esc(eur(gaspi))} de rab, à recycler la semaine prochaine</div>
+      dont ${esc(eur(gaspi))} de surplus, à cuisiner la semaine prochaine</div>
   </div>`;
 }
 function renderCourses() {
@@ -1975,6 +2111,12 @@ function renderCourses() {
   }));
   page.querySelectorAll("[data-del]").forEach(el => el.addEventListener("click", e => {
     e.preventDefault(); e.stopPropagation();
+    if (!el.dataset.armed) { // premier appui : on demande confirmation, pas de suppression sèche
+      page.querySelectorAll("[data-del]").forEach(x => { delete x.dataset.armed; x.textContent = "✕"; x.style.color = ""; });
+      el.dataset.armed = "1"; el.textContent = "✕ ?"; el.style.color = "var(--tomate)";
+      toast("Appuyez encore une fois pour retirer cet article");
+      return;
+    }
     const cid = el.dataset.del;
     delete S.custom[cid]; save.custom(); rsync.customPut(cid, null); renderCourses(); updateCoursesBadge();
   }));
@@ -2016,6 +2158,39 @@ function fallbackCopy(txt, cb) {
   ta.value = txt; document.body.appendChild(ta); ta.select();
   try { document.execCommand("copy"); cb(); } catch (e) { toast("Impossible de copier automatiquement"); }
   document.body.removeChild(ta);
+}
+/* ---------- Sauvegarde / restauration des données locales ---------- */
+const BP_PFX = (typeof SIMPLE !== "undefined" && SIMPLE) ? "facile_bp_" : "bp_";
+function exportDonnees() {
+  const out = { _app: "bonne-pioche", _v: 1 };
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.indexOf(BP_PFX) === 0) out[k] = localStorage.getItem(k);
+    }
+  } catch (e) {}
+  return JSON.stringify(out);
+}
+function copierSauvegarde() {
+  const txt = exportDonnees();
+  const done = () => toast("Sauvegarde copiée — collez-la dans une note ou un message pour la garder", 3400);
+  if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(done, () => fallbackCopy(txt, done));
+  else fallbackCopy(txt, done);
+}
+function restaurerDonnees(txt) {
+  let data;
+  try { data = JSON.parse(txt); } catch (e) { toast("Cette sauvegarde n'est pas lisible — vérifiez le texte collé", 3400, "err"); return false; }
+  if (!data || data._app !== "bonne-pioche") { toast("Cette sauvegarde n'est pas lisible — vérifiez le texte collé", 3400, "err"); return false; }
+  let n = 0;
+  try {
+    Object.keys(data).forEach(k => {
+      if (k.indexOf(BP_PFX) === 0 && typeof data[k] === "string") { localStorage.setItem(k, data[k]); n++; }
+    });
+  } catch (e) {}
+  if (!n) { toast("Cette sauvegarde ne contient rien pour cette application", 3400, "err"); return false; }
+  toast("Données restaurées — l'application redémarre");
+  setTimeout(() => location.reload(), 900);
+  return true;
 }
 
 /* ================= FAVORIS ================= */
@@ -2130,16 +2305,16 @@ function openModal(id) {
       ${macroHTML("fibres", r.macros.fibres + "g", "Fibres")}
     </div>
     <div class="cut"></div>
-    <h4 class="mh">La cagette · ${r.portions} portions</h4>
+    <h4 class="mh">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "Les ingrédients" : "La cagette"} · ${r.portions} portions</h4>
     <ul class="ing-list">${(r.ingredients || []).map(i => `<li><span>${esc(i.nom)}</span><span>${fmtQte(i.qte)} ${esc(i.unite)}</span></li>`).join("")}</ul>
     <div class="cut"></div>
-    <h4 class="mh">Le geste · ${r.tempsActif} min actives · ${r.tempsTotal} min total</h4>
+    <h4 class="mh">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "La recette" : "Le geste"} · ${r.tempsActif} min actives · ${r.tempsTotal} min total</h4>
     <ol class="steps">${(r.etapes || []).map(e2 => `<li>${esc(e2)}</li>`).join("")}</ol>
-    ${r.batchTip ? `<div class="cut"></div><div class="batch-tip"><b>Batch :</b> ${esc(r.batchTip)}</div>` : ""}
+    ${r.batchTip ? `<div class="cut"></div><div class="batch-tip"><b>${(typeof SIMPLE !== "undefined" && SIMPLE) ? "Astuce :" : "Batch :"}</b> ${esc(r.batchTip)}</div>` : ""}
     <div class="meta-row" style="justify-content:flex-start;margin-top:12px">
       ${(r.badges || []).map(chipHTML).join("")}
     </div>
-    <div class="sub" style="font-size:10px;margin-top:10px">Macros par portion, estimations.</div>
+    <div class="sub" style="font-size:${(typeof SIMPLE !== "undefined" && SIMPLE) ? 12 : 10}px;margin-top:10px">Macros par portion, estimations.</div>
     ${isFav(id) ? '<div class="mstamp">MIAM VALIDÉ</div>' : ""}
   </div>`;
   $("#m-close").addEventListener("click", closeModal);
@@ -2176,7 +2351,7 @@ const api = {
     return r.json();
   }
 };
-function syncErr(e) { setDot("err"); toast("Synchro impossible — vérifie la connexion"); }
+function syncErr(e) { setDot("err"); toast("Synchro impossible — vérifiez la connexion, puis réessayez", 3400, "err"); }
 function setDot(st) {
   const d = $("#sync-dot"); if (!d) return;
   d.style.display = remoteOn() ? "inline-block" : "none";
@@ -2202,13 +2377,19 @@ const rsync = {
   checkedAll() { if (remoteOn()) tracked(api.put("courses/checked", S.checked)); }
 };
 /* polling + application de l'état distant */
-let _pollTimer = null, _lastRoom = "", _dragging = false;
+let _pollTimer = null, _lastRoom = "", _dragging = false, _pollErrs = 0;
+function schedulePoll() {
+  if (!remoteOn()) { _pollTimer = null; return; }
+  // en cas d'erreurs répétées, on espace les tentatives (5 s → 60 s), et on revient à 5 s dès que ça remarche
+  const delay = Math.min(POLL_MS * Math.pow(2, _pollErrs), 60000);
+  _pollTimer = setTimeout(async () => { await pollRoom(); schedulePoll(); }, delay);
+}
 function startPolling() {
   if (!remoteOn()) { setDot(); return; }
   setDot("ok");
   if (_pollTimer) return;
-  _pollTimer = setInterval(pollRoom, POLL_MS);
   pollRoom();
+  schedulePoll();
 }
 function userBusy() {
   const a = document.activeElement;
@@ -2219,10 +2400,11 @@ async function pollRoom() {
   if (_pendingWrites > 0 || Date.now() < _quietUntil) return;
   try {
     const room = await api.get("");
+    _pollErrs = 0;
     setDot("ok");
     if (_pendingWrites > 0 || Date.now() < _quietUntil) return;
     applyRoom(room || {});
-  } catch (e) { setDot("err"); }
+  } catch (e) { _pollErrs = Math.min(_pollErrs + 1, 4); setDot("err"); }
 }
 function applyRoom(room) {
   const j = JSON.stringify(room);
@@ -2335,7 +2517,7 @@ function renderRemotePioche(page) {
     const st = states[ph.cat];
     let status, act = "";
     if (st.complete) status = `<span class="chip olive">${st.liked.length}/${st.target} au menu</span>`;
-    else if (!st.meDone) { status = `<span class="chip terra">à toi — manche ${st.round}</span>`; act = `<button class="btn btn-primary btn-sm" data-swipe="${ph.cat}">Swiper (${st.deck.length} cartes)</button>`; }
+    else if (!st.meDone) { status = `<span class="chip terra">à vous — manche ${st.round}</span>`; act = `<button class="btn btn-primary btn-sm" data-swipe="${ph.cat}">Swiper (${st.deck.length} cartes)</button>`; }
     else status = `<span class="chip saf">${esc(partnerName())} swipe — ${st.liked.length}/${st.target}</span>`;
     const tagMini = id => {
       const t = st.chosenBy[id];
@@ -2367,8 +2549,10 @@ function renderRemotePioche(page) {
     S.rswipe = { sessionId: ses.id, cat, round: st.round, deck: st.deck, idx: 0, likes: {} };
     store.set("bp_rswipe", S.rswipe); render();
   }));
-  $("#abort-remote").addEventListener("click", async () => {
-    try { await api.put("session", null); S.rsession = null; S.rswipe = null; store.set("bp_rswipe", null); _lastRoom = ""; render(); } catch (e) { syncErr(e); }
+  $("#abort-remote").addEventListener("click", async e => {
+    const b = e.currentTarget;
+    if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Vraiment abandonner ? Appuyez encore une fois"; b.style.color = "var(--tomate)"; return; }
+    try { await api.put("session", null); S.rsession = null; S.rswipe = null; store.set("bp_rswipe", null); _lastRoom = ""; render(); } catch (e2) { syncErr(e2); }
   });
 }
 function renderRemoteDeck(page) {
@@ -2385,6 +2569,7 @@ function renderRemoteDeck(page) {
   <div class="deck-wrap">
     <div class="deck-head">
       <button class="deck-back" id="deck-back" title="Revenir à l'accueil"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M15 5 L8 12 L15 19"/></svg></button>
+      ${(rs.undo && rs.idx > 0) ? `<button class="deck-back" id="deck-undo" title="Reprendre la dernière carte" aria-label="Reprendre la dernière carte">${UNDO_IC}</button>` : ""}
       <div class="dh-mid">
         <div class="phase-lbl">${esc(ph.titre)} · manche ${rs.round}</div>
         <div class="count">${rs.idx + 1}/${rs.deck.length}</div>
@@ -2407,12 +2592,15 @@ function renderRemoteDeck(page) {
   $("#deck-back").addEventListener("click", () => {
     S.rswipe = null; store.set("bp_rswipe", null); render();
   });
+  const du = $("#deck-undo");
+  if (du) du.addEventListener("click", undoRemoteSwipe);
   if (topCard) attachDrag(topCard);
 }
 function remoteVote(id, liked, superLike) {
   const rs = S.rswipe;
   if (liked) rs.likes[id] = superLike ? 2 : true;
   rs.idx += 1;
+  rs.undo = { id };
   store.set("bp_rswipe", rs);
   if (rs.idx >= rs.deck.length) finishRemoteRound(); else render();
 }
@@ -2449,7 +2637,7 @@ function renderRemoteRecap(page, states) {
   page.innerHTML = `<div class="pad">
     <h2 class="section" style="font-size:26px">Vous avez fini tous les deux !</h2>
     <div class="sub">Validez pour créer le menu partagé et la liste de courses — sur les deux téléphones.</div>
-    ${section("diner", "Dîners (× lunch du lendemain)")}
+    ${section("diner", "Dîners (× déjeuner du lendemain)")}
     ${section("petitdej", "Petits-déjeuners")}
     ${section("collation", "Collations")}
     <div class="mt20" style="display:flex; flex-direction:column; gap:9px">
@@ -2458,7 +2646,10 @@ function renderRemoteRecap(page, states) {
     </div>
   </div>`;
   attachRowEvents(page);
-  $("#validate-remote").addEventListener("click", async () => {
+  $("#validate-remote").addEventListener("click", async e => {
+    const b = e.currentTarget;
+    if (b.dataset.busy) return;
+    b.dataset.busy = "1"; b.disabled = true;
     const diners = shuffle(states.diner.liked);
     const mult = {};
     diners.forEach(id => mult[id] = 1);
@@ -2483,10 +2674,12 @@ function renderRemoteRecap(page, states) {
       if (S.rsession) S.rsession.validated = true;
       _lastRoom = ""; S.tab = "semaine"; render(); burstConfetti();
       toast("Menu du foyer validé — synchronisé sur les deux téléphones", 2800);
-    } catch (e) { syncErr(e); }
+    } catch (err) { syncErr(err); b.disabled = false; delete b.dataset.busy; }
   });
-  $("#abort-remote2").addEventListener("click", async () => {
-    try { await api.put("session", null); S.rsession = null; _lastRoom = ""; render(); } catch (e) { syncErr(e); }
+  $("#abort-remote2").addEventListener("click", async e => {
+    const b = e.currentTarget;
+    if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Vraiment tout repiocher ? Appuyez encore une fois"; b.style.color = "var(--tomate)"; return; }
+    try { await api.put("session", null); S.rsession = null; _lastRoom = ""; render(); } catch (err) { syncErr(err); }
   });
 }
 /* ---------- Réglages foyer ---------- */
@@ -2494,6 +2687,13 @@ function connecterFoyer(code, me, nom) {
   RC = { url: FB_DEFAUT, code, me };
   store.set("bp_remote", RC);
   return (async () => {
+    const profil = await api.get("profil");
+    if (me === "p2" && !(profil && profil.p1 && profil.p1.nom)) {
+      const e = new Error("code introuvable"); e.bp = "introuvable"; throw e;
+    }
+    if (me === "p1" && profil && (profil.p1 || profil.p2)) {
+      const e = new Error("code deja pris"); e.bp = "occupe"; throw e;
+    }
     await api.put("profil/" + me, { nom });
     const favs = {}; S.favoris.forEach(id => favs[id] = true);
     if (S.favoris.length) await api.patch("favoris", favs);
@@ -2502,13 +2702,27 @@ function connecterFoyer(code, me, nom) {
     render();
   })().catch(e => {
     RC = null; store.set("bp_remote", null); setDot();
-    toast("La connexion n'a pas marché — vérifiez votre accès internet et réessayez", 3400);
+    if (e && e.bp === "introuvable") toast("Ce code est introuvable — vérifiez-le avec l'autre personne, lettre par lettre", 4200);
+    else if (!e || e.bp !== "occupe") toast("La connexion n'a pas marché — vérifiez votre accès internet et réessayez", 3400);
     throw e;
   });
 }
 function codeFacile() {
-  const MOTS = ["citron", "basilic", "abricot", "olive", "menthe", "sesame", "miel", "figue", "tomate", "safran", "praline", "noisette"];
-  return MOTS[Math.floor(Math.random() * MOTS.length)] + "-" + MOTS[Math.floor(Math.random() * MOTS.length)] + "-" + Math.floor(10 + Math.random() * 90);
+  const MOTS = ["citron", "basilic", "abricot", "olive", "menthe", "sesame", "miel", "figue", "tomate", "safran", "praline", "noisette",
+    "vanille", "cerise", "mangue", "poire", "radis", "thym", "anis", "cacao", "caramel", "muscade", "romarin", "fenouil"];
+  const m = () => MOTS[Math.floor(Math.random() * MOTS.length)];
+  let a = m(), b = m();
+  while (b === a) b = m();
+  return a + "-" + b + "-" + Math.floor(10 + Math.random() * 90);
+}
+function normaliseCode(brut) {
+  return (brut || "").trim().toLowerCase()
+    .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+    .replace(/[\s_.,;:]+/g, "-")
+    .replace(/[^a-z0-9-]/g, "")
+    .replace(/-+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .replace(/^fac-/, "");
 }
 function openPairingFacile(etape) {
   const mb = $("#modal-back"), m = $("#modal");
@@ -2524,6 +2738,7 @@ function openPairingFacile(etape) {
         <button class="btn btn-ghost btn-block" id="fp-join">J'ai reçu un code</button>
         <button class="btn btn-ghost btn-block" id="fp-close">Annuler</button>
       </div>
+      <div class="sub" style="margin-top:12px;text-align:center"><a href="confidentialite.html" target="_blank" rel="noopener" style="color:var(--rose)">Où vont mes données ?</a></div>
     </div>`;
     const nomOk = () => {
       const n = $("#fp-nom").value.trim();
@@ -2542,17 +2757,23 @@ function openPairingFacile(etape) {
       <div class="fp-choices">
         <button class="btn btn-ghost btn-block" id="fp-copy">Envoyer le code par message</button>
         <button class="btn btn-primary btn-block" id="fp-go">C'est noté, on continue</button>
+        <button class="btn btn-ghost btn-block" id="fp-back0">Revenir</button>
       </div>
     </div>`;
     $("#fp-copy").addEventListener("click", () => {
       const txt = "Notre code Bonne Pioche : " + code + "\nOuvre l'application, choisis « Chacun son téléphone », appuie sur « C'est parti » puis « J'ai reçu un code ».";
-      if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => toast("Message copié — collez-le dans vos SMS"), () => fallbackCopy(txt, () => toast("Message copié")));
+      if (navigator.share) navigator.share({ text: txt }).catch(() => {});
+      else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => toast("Message copié — collez-le dans vos SMS"), () => fallbackCopy(txt, () => toast("Message copié")));
       else fallbackCopy(txt, () => toast("Message copié"));
     });
+    $("#fp-back0").addEventListener("click", () => openPairingFacile());
     $("#fp-go").addEventListener("click", async () => {
       $("#fp-go").disabled = true;
       try { await connecterFoyer("fac-" + code, "p1", store.get("bp_mon_nom", "Moi")); toast("C'est relié ! Lancez une partie quand vous voulez"); }
-      catch (e) { $("#fp-go").disabled = false; }
+      catch (e) {
+        if (e && e.bp === "occupe") { openPairingFacile("create"); return; } // code déjà pris ailleurs : on en tire un autre
+        $("#fp-go").disabled = false;
+      }
     });
   } else {
     m.innerHTML = `<div class="modal-body fp">
@@ -2566,13 +2787,59 @@ function openPairingFacile(etape) {
     </div>`;
     $("#fp-back").addEventListener("click", () => openPairingFacile());
     $("#fp-go2").addEventListener("click", async () => {
-      const code = $("#fp-code").value.trim().toLowerCase().replace(/\s+/g, "");
+      const code = normaliseCode($("#fp-code").value);
       if (!code) { toast("Écrivez d'abord le code"); return; }
       $("#fp-go2").disabled = true;
       try { await connecterFoyer("fac-" + code, "p2", store.get("bp_mon_nom", "Moi")); toast("C'est relié !"); }
       catch (e) { $("#fp-go2").disabled = false; }
     });
   }
+  mb.classList.add("open"); m.scrollTop = 0;
+}
+function openDuoFacile() {
+  const mb = $("#modal-back"), m = $("#modal");
+  if (!RC) { openPairingFacile(); return; }
+  const code = (RC.code || "").replace(/^fac-/, "");
+  const autre = S.rnames && S.rnames[other(RC.me)] && S.rnames[other(RC.me)].nom;
+  m.innerHTML = `<div class="modal-body fp">
+    <h3>Notre duo</h3>
+    <div class="accroche">${autre
+      ? `Vos deux téléphones sont reliés : ${esc(myName())} et ${esc(autre)}. Menus, matchs et liste de courses se partagent tout seuls.`
+      : "Votre téléphone est prêt. Dès que l'autre personne écrit le code ci-dessous dans son application, vous serez reliés."}</div>
+    <div class="fp-code" style="font-size:24px">${esc(code)}</div>
+    <h4 class="mh">Votre prénom</h4>
+    <input id="fd-nom" autocomplete="given-name" placeholder="Votre prénom" value="${esc(store.get("bp_mon_nom", ""))}">
+    <div class="fp-choices">
+      <button class="btn btn-ghost btn-block" id="fd-share">Envoyer le code par message</button>
+      <button class="btn btn-ghost btn-block" id="fd-aide">Revoir l'explication du début</button>
+      <button class="btn btn-ghost btn-block" id="fd-backup">Copier une sauvegarde de mes données</button>
+      <button class="btn btn-ghost btn-block" id="fd-off" style="color:var(--tomate)">Séparer les deux téléphones</button>
+      <button class="btn btn-primary btn-block" id="fd-close">Fermer</button>
+    </div>
+    <div class="sub" style="margin-top:12px;text-align:center"><a href="confidentialite.html" target="_blank" rel="noopener" style="color:var(--rose)">Où vont mes données ?</a></div>
+  </div>`;
+  $("#fd-nom").addEventListener("change", async () => {
+    const n = $("#fd-nom").value.trim();
+    if (!n) return;
+    store.set("bp_mon_nom", n);
+    try { await api.put("profil/" + RC.me, { nom: n }); toast("Prénom enregistré"); } catch (e) {}
+  });
+  $("#fd-share").addEventListener("click", () => {
+    const txt = "Notre code Bonne Pioche : " + code + "\nOuvre l'application, choisis « Chacun son téléphone », appuie sur « C'est parti » puis « J'ai reçu un code ».";
+    if (navigator.share) navigator.share({ text: txt }).catch(() => {});
+    else if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(txt).then(() => toast("Message copié — collez-le dans vos SMS"), () => fallbackCopy(txt, () => toast("Message copié")));
+    else fallbackCopy(txt, () => toast("Message copié"));
+  });
+  $("#fd-aide").addEventListener("click", () => { closeModal(); showOnboarding(); });
+  $("#fd-backup").addEventListener("click", copierSauvegarde);
+  $("#fd-off").addEventListener("click", e => {
+    const b = e.currentTarget;
+    if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Vraiment séparer ? Appuyez encore une fois"; return; }
+    RC = null; store.set("bp_remote", null);
+    if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
+    setDot(); closeModal(); toast("Les téléphones ne sont plus reliés"); render();
+  });
+  $("#fd-close").addEventListener("click", closeModal);
   mb.classList.add("open"); m.scrollTop = 0;
 }
 function openSettings() {
@@ -2599,14 +2866,20 @@ function openSettings() {
       <button class="btn btn-sm ${rc.me === "p1" ? "btn-primary" : "btn-ghost"}" style="flex:1" data-me="p1">Joueur 1</button>
       <button class="btn btn-sm ${rc.me === "p2" ? "btn-primary" : "btn-ghost"}" style="flex:1" data-me="p2">Joueur 2</button>
     </div>
-    <input id="rc-nom" style="width:100%; margin-top:8px; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:11px 13px; font-size:16px" placeholder="Ton prénom" value="${esc(myNom)}">
+    <input id="rc-nom" style="width:100%; margin-top:8px; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:11px 13px; font-size:16px" placeholder="Votre prénom" value="${esc(myNom)}">
     <div style="display:flex; flex-direction:column; gap:8px; margin-top:16px">
       <button class="btn btn-olive btn-block" id="rc-save">Connecter</button>
       <button class="btn btn-ghost btn-block" id="rc-share">Copier l'invitation pour l'autre téléphone</button>
-      ${remoteOn() ? '<button class="btn btn-ghost btn-block" id="rc-off" style="color:var(--rouge)">Déconnecter ce téléphone</button>' : ""}
+      ${remoteOn() ? '<button class="btn btn-ghost btn-block" id="rc-off" style="color:var(--tomate)">Déconnecter ce téléphone</button>' : ""}
+    </div>
+    <h4 class="mh">Sauvegarde de secours</h4>
+    <div style="display:flex; flex-direction:column; gap:8px">
+      <button class="btn btn-ghost btn-block" id="bk-copy">Copier ma sauvegarde (menus, favoris, courses)</button>
+      <textarea id="bk-paste" rows="2" placeholder="pour restaurer : collez une sauvegarde ici…" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:10px 12px; font-size:16px; font-family:inherit"></textarea>
+      <button class="btn btn-ghost btn-block" id="bk-restore">Restaurer cette sauvegarde</button>
       <button class="btn btn-ghost btn-block" id="rc-close">Fermer</button>
     </div>
-    <div class="sub" style="margin-top:10px">Le code du foyer est votre secret : quiconque le connaît peut lire et modifier vos menus.</div>
+    <div class="sub" style="margin-top:10px">Le code du foyer est votre secret : quiconque le connaît peut lire et modifier vos menus. <a href="confidentialite.html" target="_blank" rel="noopener" style="color:var(--prune)">Confidentialité</a></div>
   </div>`;
   $("#bg-cible").addEventListener("change", e => {
     const v = Math.max(0, parseInt(e.target.value) || 0);
@@ -2642,7 +2915,7 @@ function openSettings() {
       toast("Foyer connecté"); render();
     } catch (e) {
       RC = null; store.set("bp_remote", null); setDot();
-      toast("Connexion échouée — vérifie l'URL de la base et les règles Firebase", 3200);
+      toast("Connexion échouée — vérifiez l'URL de la base et les règles Firebase", 3200);
     }
   });
   $("#rc-share").addEventListener("click", () => {
@@ -2654,8 +2927,14 @@ function openSettings() {
   const off = $("#rc-off");
   if (off) off.addEventListener("click", () => {
     RC = null; store.set("bp_remote", null);
-    if (_pollTimer) { clearInterval(_pollTimer); _pollTimer = null; }
+    if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
     setDot(); closeModal(); toast("Téléphone déconnecté du foyer"); render();
+  });
+  $("#bk-copy").addEventListener("click", copierSauvegarde);
+  $("#bk-restore").addEventListener("click", () => {
+    const v = $("#bk-paste").value.trim();
+    if (!v) { toast("Collez d'abord une sauvegarde dans la zone au-dessus"); return; }
+    restaurerDonnees(v);
   });
   $("#rc-close").addEventListener("click", closeModal);
   mb.classList.add("open"); m.scrollTop = 0;
@@ -2668,13 +2947,17 @@ S.rsession = null; S.rnames = {};
 document.addEventListener("visibilitychange", () => { if (!document.hidden) pollRoom(); });
 startPolling();
 render();
+/* hors-ligne : le service worker garde une copie de l'application */
+if ("serviceWorker" in navigator && location.protocol === "https:") {
+  navigator.serviceWorker.register("./sw.js").catch(() => {});
+}
 
 /* ---------- Accueil guidé (mode facile, premier lancement) ---------- */
 function showOnboarding() {
   const ETAPES = [
     { t: "Des plats vous sont proposés, un par un", p: "Ils vous plaisent ? Appuyez sur « J'aime ». Sinon, « Non merci ». C'est tout ce qu'il y a à savoir.",
       svg: "<svg viewBox='0 0 24 24' fill='none' stroke='#7D4453' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><rect x='3' y='5' width='11' height='15' rx='2.5' transform='rotate(-8 8 12)'/><rect x='10' y='4' width='11' height='15' rx='2.5' transform='rotate(7 16 12)'/></svg>" },
-    { t: "À deux, vos accords font le menu", p: "Chacun choisit sur son téléphone. Quand un plat vous plaît à tous les deux, c'est un match : il entre au menu tout seul.",
+    { t: "À deux, vos matchs font le menu", p: "Chacun choisit sur son téléphone. Quand un plat vous plaît à tous les deux, c'est un match : il entre au menu tout seul.",
       svg: "<svg viewBox='0 0 24 24' fill='none' stroke='#7D4453' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><path d='M12 20 q-7 -4.6 -8.4 -9 q-1 -3.4 1.8 -5 q2.8 -1.6 5 .8 l1.6 1.8 l1.6 -1.8 q2.2 -2.4 5 -.8 q2.8 1.6 1.8 5 q-1.4 4.4 -8.4 9 Z'/></svg>" },
     { t: "Votre semaine se remplit toute seule", p: "Chaque plat aimé prend sa place dans le calendrier, du lundi au dimanche. Vous pouvez toujours en changer après.",
       svg: "<svg viewBox='0 0 24 24' fill='none' stroke='#7D4453' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'><rect x='3.5' y='5' width='17' height='15.5' rx='3'/><path d='M8 3.5 l0 4 M16 3.5 l0 4 M3.5 10.5 l17 0'/></svg>" },

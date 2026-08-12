@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Bonne Pioche — Confidentialité</title>
+<style>
+  :root{--prune:#7D4453;--abricot:#D98E6F;--creme:#FCF5F0;--encre:#2D2A26;--encre2:#6B6259}
+  *{margin:0;padding:0;box-sizing:border-box}
+  body{background:var(--creme);color:var(--encre);font-family:Georgia,'Times New Roman',serif;line-height:1.65}
+  .wrap{max-width:640px;margin:0 auto;padding:48px 24px 80px}
+  h1{color:var(--prune);font-size:34px;line-height:1.15;margin-bottom:6px}
+  .date{color:var(--encre2);font-size:14px;margin-bottom:34px}
+  h2{color:var(--prune);font-size:21px;margin:34px 0 10px}
+  p{margin:12px 0;font-size:16.5px}
+  ul{margin:12px 0 12px 22px}
+  li{margin:7px 0;font-size:16.5px}
+  .carte{background:#fff;border-radius:16px;padding:18px 20px;margin:16px 0;box-shadow:0 4px 14px rgba(125,68,83,.08)}
+  a{color:var(--prune)}
+  code{background:rgba(125,68,83,.08);border-radius:5px;padding:1px 6px;font-size:14.5px}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>Confidentialité</h1>
+  <div class="date">Bonne Pioche &amp; Bonne Pioche Facile — dernière mise à jour : août 2026</div>
+
+  <p>Bonne Pioche est une application familiale de menus de la semaine. Elle est
+  conçue pour fonctionner avec le moins de données possible. Cette page décrit
+  honnêtement tout ce qui est stocké, où, et pourquoi.</p>
+
+  <h2>Ce que l'application enregistre</h2>
+  <div class="carte">
+    <ul>
+      <li><b>Vos choix de plats</b> : menus de la semaine, plats aimés, favoris, historique des trois dernières semaines (pour éviter les répétitions).</li>
+      <li><b>Votre liste de courses</b> : articles cochés et articles ajoutés à la main.</li>
+      <li><b>Vos réglages</b> : nombre de repas, budget éventuel, taille du texte.</li>
+      <li><b>Un prénom</b>, si vous utilisez le mode à deux téléphones — celui que vous saisissez, rien d'autre.</li>
+    </ul>
+  </div>
+  <p>Il n'y a <b>ni compte, ni e-mail, ni mot de passe, ni numéro de téléphone</b>.
+  L'application ne demande aucune autorisation (pas de contacts, pas de position, pas de photos).</p>
+
+  <h2>Où ces données sont stockées</h2>
+  <p><b>Par défaut : uniquement sur votre téléphone</b>, dans la mémoire locale de
+  l'application. Rien ne quitte l'appareil.</p>
+  <p><b>Si vous reliez deux téléphones</b> (mode « Chacun son téléphone »), les données
+  du foyer — menus, choix, liste de courses, prénoms — sont copiées dans une base
+  <a href="https://firebase.google.com/support/privacy" target="_blank" rel="noopener">Google Firebase</a>
+  hébergée en Europe (Belgique, région <code>europe-west1</code>), afin que les deux
+  téléphones voient la même chose. C'est le seul service tiers utilisé, et il ne sert
+  qu'à cette synchronisation.</p>
+  <div class="carte">
+    <p style="margin:0">L'accès à un foyer est protégé par son <b>code secret</b>
+    (par exemple <code>citron-miel-42</code>). Ne partagez ce code qu'avec la personne
+    de votre foyer : quiconque le connaît peut lire et modifier vos menus.</p>
+  </div>
+
+  <h2>Ce que l'application ne fait pas</h2>
+  <ul>
+    <li>Aucune publicité, aucun traceur publicitaire, aucune mesure d'audience.</li>
+    <li>Aucune revente ni partage de données — il n'y a d'ailleurs presque rien à partager.</li>
+    <li>Aucun profilage : les recettes proposées sont calculées sur votre téléphone.</li>
+  </ul>
+
+  <h2>Supprimer vos données</h2>
+  <ul>
+    <li><b>Données locales</b> : supprimez l'application (ou son écran d'accueil) et les données locales disparaissent avec elle.</li>
+    <li><b>Données synchronisées</b> : dans « Notre duo », touchez « Séparer les deux téléphones », puis créez un nouveau code si vous rejouez — l'ancien foyer devient orphelin et peut être effacé sur demande.</li>
+  </ul>
+
+  <h2>Une question ?</h2>
+  <p>Écrivez à <a href="mailto:mathieu.bigardpro@gmail.com">mathieu.bigardpro@gmail.com</a>.</p>
+</div>
+</body>
+</html>
