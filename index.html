@@ -1393,7 +1393,7 @@ function renderDeck(page) {
     <div class="deck" id="deck">
       ${top3.map((r, i) => cardHTML(r, i)).reverse().join("")}
     </div>
-    <div class="hint"><span class="caps">← passe · <b>glisse la carte</b> · j'adore →</span></div>
+    <div class="hint"><span class="caps">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "Vous pouvez aussi faire <b>glisser</b> la carte" : "← passe · <b>glisse la carte</b> · j'adore →"}</span></div>
     <div class="deck-actions">
       <button class="act-btn nope" id="btn-nope" title="Pas cette semaine"><svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round'><path d='M6.5 6 L18 18.2 M17.8 6.2 L6.2 17.8'/></svg><span class="alab">Non merci</span></button>
       <button class="act-btn info" id="btn-info" title="Voir la recette"><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><path d='M2.5 12 q9.5 -10.5 19 0 q-9.5 10.5 -19 0 Z'/><circle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/></svg><span class="alab">Voir</span></button>
@@ -1435,6 +1435,10 @@ function plateLine(r) {
   if (!noms.length) return "";
   return capFirst(noms.join(", ")) + ".";
 }
+function noteAffichee(r) {
+  const n = r.notePortions || r.portions + " portions";
+  return (typeof SIMPLE !== "undefined" && SIMPLE) ? n.replace(/lunch/gi, "déjeuner") : n;
+}
 function prixCarteHTML(r) {
   if (typeof PRIX === "undefined") return "";
   const parPart = coutSeul(r) / Math.max(1, r.portions || 2);
@@ -1472,7 +1476,7 @@ function cardHTML(r, depth) {
           <span class="caps">Dans l'assiette</span>
           <div class="pl">${esc(plateLine(r))}</div>
         </div>
-        <div class="card-foot"><span class="caps">${esc(r.notePortions || r.portions + " portions")}</span></div>
+        <div class="card-foot"><span class="caps">${esc(noteAffichee(r))}</span></div>
       </div>
     </div>
   </div>`;
@@ -2576,7 +2580,7 @@ function renderRemoteDeck(page) {
       </div>
     </div>
     <div class="deck" id="deck">${top3.map((r, i) => cardHTML(r, i)).reverse().join("")}</div>
-    <div class="hint"><span class="caps">← passe · <b>glisse la carte</b> · j'adore →</span></div>
+    <div class="hint"><span class="caps">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "Vous pouvez aussi faire <b>glisser</b> la carte" : "← passe · <b>glisse la carte</b> · j'adore →"}</span></div>
     <div class="deck-actions">
       <button class="act-btn nope" id="btn-nope"><svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round'><path d='M6.5 6 L18 18.2 M17.8 6.2 L6.2 17.8'/></svg><span class="alab">Non merci</span></button>
       <button class="act-btn info" id="btn-info"><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><path d='M2.5 12 q9.5 -10.5 19 0 q-9.5 10.5 -19 0 Z'/><circle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/></svg><span class="alab">Voir</span></button>
