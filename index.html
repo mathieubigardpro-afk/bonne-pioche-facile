@@ -9,7 +9,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
-<meta name="apple-mobile-web-app-title" content="Bonne Pioche">
+<meta name="apple-mobile-web-app-title" content="Pioche Facile">
 <link rel="apple-touch-icon" href="icon-180.png">
 <link rel="icon" type="image/png" href="icon-180.png">
 <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -137,7 +137,8 @@ body.simple .gtile{min-height:112px}
 body.simple .rayon-title .rname{font-size:17px}
 body.simple .stamp.super{display:none}
 body.simple .card-foot .caps{font-size:12px;color:var(--prune)}
-body.simple .macro-strip .k,body.simple .macro-grid .k{font-size:12px}
+body.simple .macro-strip .k,body.simple .macro-grid .k{font-size:12px;letter-spacing:.02em}
+body.simple .macro-grid{gap:4px}
 body.simple .alab{font-size:12.5px}
 body.simple .deck-back{width:44px;height:44px}
 body.simple .modal-close{width:44px;height:44px}
@@ -171,8 +172,11 @@ body.simple .phase-note{font-size:13px}
 body.simple #toast{font-size:15.5px}
 /* mode facile : pas de favoris (onglet caché), on retire donc tous les cœurs */
 body.simple .r-row .heart,body.simple .fav-tag,body.simple .modal-fav,body.simple .mstamp{display:none}
-/* texte plus grand (bascule Aa) */
+/* texte plus grand (bascule Aa) — s'applique aussi aux fiches (modales) et à l'accueil guidé */
 body.simple.xl #main{zoom:1.15}
+body.simple.xl .modal{zoom:1.15}
+body.simple.xl #onboard{zoom:1.15}
+#onboard:focus{outline:none}
 .chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
 .xl-chip.on{background:var(--prune);color:var(--creme);border-color:var(--prune)}
 .alab{display:none;font-size:11px;font-weight:800}
@@ -870,6 +874,8 @@ function shuffle(a) { a = a.slice(); for (let i = a.length - 1; i > 0; i--) { co
 function toast(msg, ms, type) {
   const t = $("#toast"); t.textContent = msg;
   t.classList.toggle("err", type === "err");
+  t.setAttribute("role", type === "err" ? "alert" : "status");
+  t.setAttribute("aria-live", type === "err" ? "assertive" : "polite");
   t.classList.add("show");
   clearTimeout(toast._h); toast._h = setTimeout(() => t.classList.remove("show"), ms || 2600);
 }
@@ -1157,6 +1163,9 @@ function renderPiocheSetup(page) {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-9.5C5 7.5 7 6 9 6c1.5 0 2.5.8 3 2 .5-1.2 1.5-2 3-2 2 0 4 1.5 4 4.5 0 5-7 9.5-7 9.5z"/></svg>
         Notre duo${(S.rnames && S.rnames[other(RC.me)] && S.rnames[other(RC.me)].nom) ? " · " + esc(S.rnames[other(RC.me)].nom) : ""}</button>` : ""}
       <button class="duo-chip xl-chip${store.get("bp_xl", 0) ? " on" : ""}" id="xl-chip" role="switch" aria-checked="${!!store.get("bp_xl", 0)}">Aa · Texte plus grand</button>
+      ${!remoteOn() ? `<button class="duo-chip" id="bk-chip">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
+        Sauvegarde</button>` : ""}
     </div>` : ""}
   </div>`;
   S.sessionTargets = t;
@@ -1216,6 +1225,31 @@ function renderPiocheSetup(page) {
     document.body.classList.toggle("xl", v);
     xc.classList.toggle("on", v); xc.setAttribute("aria-checked", v);
   });
+  const bc = $("#bk-chip");
+  if (bc) bc.addEventListener("click", openSauvegardeFacile);
+}
+/* sauvegarde accessible même sans appairage (mode facile) */
+function openSauvegardeFacile() {
+  const mb = $("#modal-back"), m = $("#modal");
+  m.innerHTML = `<div class="modal-body fp">
+    <h3>Votre sauvegarde</h3>
+    <div class="accroche">Utile si vous changez de téléphone : copiez la sauvegarde dans une note privée, puis collez-la ici sur le nouveau téléphone. Elle contient vos menus, favoris et courses.</div>
+    <div class="fp-choices">
+      <button class="btn btn-primary btn-block" id="sv-copy">Copier ma sauvegarde</button>
+      <textarea id="sv-paste" rows="2" aria-label="Coller une sauvegarde à restaurer" placeholder="pour restaurer : collez une sauvegarde ici…" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:10px 12px; font-size:16px; font-family:inherit"></textarea>
+      <button class="btn btn-ghost btn-block" id="sv-restore">Restaurer cette sauvegarde</button>
+      <button class="btn btn-ghost btn-block" id="sv-close">Fermer</button>
+    </div>
+    <div class="sub" style="margin-top:12px;text-align:center"><a href="${URL_CONF}" target="_blank" rel="noopener" style="color:var(--rose)">Où vont mes données ?</a></div>
+  </div>`;
+  $("#sv-copy").addEventListener("click", copierSauvegarde);
+  $("#sv-restore").addEventListener("click", () => {
+    const v = $("#sv-paste").value.trim();
+    if (!v) { toast("Collez d'abord une sauvegarde dans la zone au-dessus"); return; }
+    restaurerDonnees(v);
+  });
+  $("#sv-close").addEventListener("click", closeModal);
+  mb.classList.add("open"); m.scrollTop = 0; m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
 }
 
 function buildQueue(cat, target) {
@@ -1408,7 +1442,7 @@ function renderDeck(page) {
     <div class="deck-actions">
       <button class="act-btn nope" id="btn-nope" title="Pas cette semaine"><svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round'><path d='M6.5 6 L18 18.2 M17.8 6.2 L6.2 17.8'/></svg><span class="alab">Non merci</span></button>
       <button class="act-btn info" id="btn-info" title="Voir la recette"><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><path d='M2.5 12 q9.5 -10.5 19 0 q-9.5 10.5 -19 0 Z'/><circle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/></svg><span class="alab">Voir</span></button>
-      <button class="act-btn super" id="btn-super" title="Super Swipe — je pose une option !" ${superAvailable() ? "" : "disabled"}><svg viewBox='0 0 24 24' width='24' height='24' fill='currentColor' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2.6 l2.7 6 l6.5 .7 l-4.8 4.4 l1.3 6.4 l-5.7 -3.3 l-5.7 3.3 l1.3 -6.4 l-4.8 -4.4 l6.5 -.7 Z'/></svg></button>
+      <button class="act-btn super" id="btn-super" title="Super Swipe — je pose une option !" aria-label="Super Swipe : poser une option" ${superAvailable() ? "" : "disabled"}><svg viewBox='0 0 24 24' width='24' height='24' fill='currentColor' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2.6 l2.7 6 l6.5 .7 l-4.8 4.4 l1.3 6.4 l-5.7 -3.3 l-5.7 3.3 l1.3 -6.4 l-4.8 -4.4 l6.5 -.7 Z'/></svg></button>
       <button class="act-btn like" id="btn-like" title="On la mange !"><svg viewBox='0 0 24 24' width='27' height='27' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round'><circle cx='12' cy='12' r='9.4'/><circle cx='8.6' cy='9.8' r='1.35' fill='currentColor' stroke='none'/><circle cx='15.4' cy='9.8' r='1.35' fill='currentColor' stroke='none'/><path d='M7.6 14.2 q4.4 4.4 8.8 0'/></svg><span class="alab">J'aime</span></button>
     </div>
   </div>`;
@@ -1441,6 +1475,15 @@ function superAvailable() {
   if (ses.mode === "duo") return !(ses.superUsed && ses.superUsed[ses.current] && ses.superUsed[ses.current][cat]);
   return !(ses.superUsed && ses.superUsed.solo && ses.superUsed.solo[cat]);
 }
+const UNIV_FACILE = {
+  "Collations sucrées sportives": "Collations sucrées",
+  "Collations salées & récupération": "Collations salées",
+  "Petits-déj sucrés protéinés": "Petits-déj sucrés",
+  "Petits-déj salés & du monde": "Petits-déj salés"
+};
+function universAffiche(u) {
+  return (typeof SIMPLE !== "undefined" && SIMPLE) ? (UNIV_FACILE[u] || u) : u;
+}
 function plateLine(r) {
   const noms = (r.ingredients || []).slice(0, 6).map(i => normNom(i.nom));
   if (!noms.length) return "";
@@ -1472,15 +1515,15 @@ function cardHTML(r, depth) {
       <div class="grip"></div>
       <div class="card-visu"><span class="pastille big" style="background:${mixWhite(uc.fg, .12)}">${pictoSVG(r, "picto")}</span>${prixCarteHTML(r)}</div>
       <div class="card-body">
-        <span class="univers-tag caps" style="color:${uc.fg}">${esc(r.univers)}</span>
+        <span class="univers-tag caps" style="color:${uc.fg}">${esc(universAffiche(r.univers))}</span>
         <h3>${esc(r.nom)}</h3>
         <div class="accroche">« ${esc(r.accroche)} »</div>
         <div class="cut"></div>
         <div class="macro-strip">
-          ${macroHTML("temps", r.tempsActif + "'", "Actives")}
+          ${macroHTML("temps", r.tempsActif + "'", (typeof SIMPLE !== "undefined" && SIMPLE) ? "minutes" : "Actives")}
           ${macroHTML("portions", r.portions, "Portions")}
-          ${macroHTML("prot", r.macros.prot + "g", "Prot")}
-          ${macroHTML("kcal", r.macros.kcal, "Kcal")}
+          ${macroHTML("prot", r.macros.prot + "g", (typeof SIMPLE !== "undefined" && SIMPLE) ? "Protéines" : "Prot")}
+          ${macroHTML("kcal", r.macros.kcal, (typeof SIMPLE !== "undefined" && SIMPLE) ? "Calories" : "Kcal")}
         </div>
         <div class="meta-row">${(r.badges || []).slice(0, 3).map(chipHTML).join("")}</div>
         <div class="card-plate">
@@ -2314,7 +2357,7 @@ function openModal(id) {
     <button class="modal-fav" id="m-fav">${isFav(id) ? "♥" : "♡"}</button>
     <button class="modal-close" id="m-close">✕</button>
     <div class="modal-band" style="background:${uc.fg}"></div>
-    <span class="caps modal-caps" style="color:${uc.fg}">N° ${String(num).padStart(3, "0")} / ${RECETTES.length} · ${esc(r.univers)}</span>
+    <span class="caps modal-caps" style="color:${uc.fg}">N° ${String(num).padStart(3, "0")} / ${RECETTES.length} · ${esc(universAffiche(r.univers))}</span>
     <div class="modal-head mt8">
       <div>
         <h3>${esc(r.nom)}</h3>
@@ -2324,10 +2367,10 @@ function openModal(id) {
     </div>
     <div class="cut"></div>
     <div class="macro-grid">
-      ${macroHTML("prot", r.macros.prot + "g", "Prot")}
-      ${macroHTML("kcal", r.macros.kcal, "Kcal")}
-      ${macroHTML("gluc", r.macros.gluc + "g", "Gluc")}
-      ${macroHTML("lip", r.macros.lip + "g", "Lip")}
+      ${macroHTML("prot", r.macros.prot + "g", (typeof SIMPLE !== "undefined" && SIMPLE) ? "Protéines" : "Prot")}
+      ${macroHTML("kcal", r.macros.kcal, (typeof SIMPLE !== "undefined" && SIMPLE) ? "Calories" : "Kcal")}
+      ${macroHTML("gluc", r.macros.gluc + "g", (typeof SIMPLE !== "undefined" && SIMPLE) ? "Glucides" : "Gluc")}
+      ${macroHTML("lip", r.macros.lip + "g", (typeof SIMPLE !== "undefined" && SIMPLE) ? "Lipides" : "Lip")}
       ${macroHTML("fibres", r.macros.fibres + "g", "Fibres")}
     </div>
     <div class="cut"></div>
@@ -2353,6 +2396,9 @@ function openModal(id) {
   m.scrollTop = 0;
 }
 function closeModal() { const mb = $("#modal-back"); delete mb.dataset.garde; mb.classList.remove("open"); }
+document.addEventListener("keydown", e => {
+  if (e.key === "Escape" && $("#modal-back").classList.contains("open")) closeModal();
+});
 $("#modal-back").addEventListener("click", e => {
   if (e.target.id !== "modal-back") return;
   if (e.target.dataset.garde) return; // appairage en cours : on ferme uniquement par les boutons
@@ -2398,21 +2444,40 @@ function setDot(st) {
 /* écritures granulaires (fire-and-forget) avec garde anti-écrasement :
    tant qu'une écriture est en vol (+ 2,5 s après), le polling n'écrase pas l'état local */
 let _pendingWrites = 0, _quietUntil = 0;
-function tracked(p) {
+/* écritures ratées : mises en file et rejouées avant tout sondage — l'état distant
+   n'écrase jamais une action locale tant qu'elle n'a pas été poussée avec succès */
+let _retryQ = [];
+function tracked(p, retry) {
   _pendingWrites++;
   return p.then(
     v => { _pendingWrites--; _quietUntil = Date.now() + 2500; setDot("ok"); return v; },
-    e => { _pendingWrites--; _quietUntil = Date.now() + 2500; syncErr(e); }
+    e => {
+      _pendingWrites--; _quietUntil = Date.now() + 2500; syncErr(e);
+      if (retry) {
+        _retryQ = _retryQ.filter(x => x.path !== retry.path); // la valeur la plus récente gagne
+        _retryQ.push(retry);
+        _retryQ = _retryQ.slice(-30);
+      }
+    }
   );
 }
+async function flushRetryQ() {
+  if (!_retryQ.length || !remoteOn()) return;
+  const q = _retryQ; _retryQ = [];
+  for (const it of q) {
+    try { await api.put(it.path, typeof it.val === "function" ? it.val() : it.val); }
+    catch (e) { _retryQ.push(it); }
+  }
+  if (!_retryQ.length) { setDot("ok"); toast("Tout est rattrapé — vos actions sont synchronisées", 2600); }
+}
 const rsync = {
-  fav(id, val) { if (remoteOn()) tracked(api.put("favoris/" + id, val ? true : null)); },
-  check(key, val) { if (remoteOn()) tracked(api.put("courses/checked/" + fbKey(key), val ? 1 : null)); },
-  customPut(cid, obj) { if (remoteOn()) tracked(api.put("courses/custom/" + cid, obj)); },
-  mult(id, val) { if (remoteOn()) tracked(api.put("week/mult/" + id, val)); },
-  week() { if (remoteOn()) tracked(api.put("week", S.week)); },
-  hist() { if (remoteOn()) tracked(api.put("hist", S.hist)); },
-  checkedAll() { if (remoteOn()) tracked(api.put("courses/checked", S.checked)); }
+  fav(id, val) { if (remoteOn()) tracked(api.put("favoris/" + id, val ? true : null), { path: "favoris/" + id, val: val ? true : null }); },
+  check(key, val) { if (remoteOn()) tracked(api.put("courses/checked/" + fbKey(key), val ? 1 : null), { path: "courses/checked/" + fbKey(key), val: val ? 1 : null }); },
+  customPut(cid, obj) { if (remoteOn()) tracked(api.put("courses/custom/" + cid, obj), { path: "courses/custom/" + cid, val: obj }); },
+  mult(id, val) { if (remoteOn()) tracked(api.put("week/mult/" + id, val), { path: "week/mult/" + id, val }); },
+  week() { if (remoteOn()) tracked(api.put("week", S.week), { path: "week", val: () => S.week }); },
+  hist() { if (remoteOn()) tracked(api.put("hist", S.hist), { path: "hist", val: () => S.hist }); },
+  checkedAll() { if (remoteOn()) tracked(api.put("courses/checked", S.checked), { path: "courses/checked", val: () => S.checked }); }
 };
 /* polling + application de l'état distant */
 let _pollTimer = null, _lastRoom = "", _dragging = false, _pollErrs = 0;
@@ -2436,6 +2501,7 @@ function userBusy() {
 async function pollRoom() {
   if (!remoteOn() || document.hidden) return;
   if (_pendingWrites > 0 || Date.now() < _quietUntil) return;
+  if (_retryQ.length) { await flushRetryQ(); if (_retryQ.length) return; } // ne jamais écraser une action non poussée
   try {
     const room = await api.get("");
     _pollErrs = 0;
@@ -2623,7 +2689,7 @@ function renderRemoteDeck(page) {
     <div class="deck-actions">
       <button class="act-btn nope" id="btn-nope"><svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round'><path d='M6.5 6 L18 18.2 M17.8 6.2 L6.2 17.8'/></svg><span class="alab">Non merci</span></button>
       <button class="act-btn info" id="btn-info"><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><path d='M2.5 12 q9.5 -10.5 19 0 q-9.5 10.5 -19 0 Z'/><circle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/></svg><span class="alab">Voir</span></button>
-      <button class="act-btn super" id="btn-super" title="Super Swipe — je pose une option !" ${superAvailable() ? "" : "disabled"}><svg viewBox='0 0 24 24' width='24' height='24' fill='currentColor' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2.6 l2.7 6 l6.5 .7 l-4.8 4.4 l1.3 6.4 l-5.7 -3.3 l-5.7 3.3 l1.3 -6.4 l-4.8 -4.4 l6.5 -.7 Z'/></svg></button>
+      <button class="act-btn super" id="btn-super" title="Super Swipe — je pose une option !" aria-label="Super Swipe : poser une option" ${superAvailable() ? "" : "disabled"}><svg viewBox='0 0 24 24' width='24' height='24' fill='currentColor' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2.6 l2.7 6 l6.5 .7 l-4.8 4.4 l1.3 6.4 l-5.7 -3.3 l-5.7 3.3 l1.3 -6.4 l-4.8 -4.4 l6.5 -.7 Z'/></svg></button>
       <button class="act-btn like" id="btn-like"><svg viewBox='0 0 24 24' width='27' height='27' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round'><circle cx='12' cy='12' r='9.4'/><circle cx='8.6' cy='9.8' r='1.35' fill='currentColor' stroke='none'/><circle cx='15.4' cy='9.8' r='1.35' fill='currentColor' stroke='none'/><path d='M7.6 14.2 q4.4 4.4 8.8 0'/></svg><span class="alab">J'aime</span></button>
     </div>
   </div>`;
@@ -2776,7 +2842,7 @@ function openPairingFacile(etape) {
       <h3>Jouer à deux,<br>chacun son téléphone</h3>
       <div class="accroche">Une seule fois : on relie vos deux téléphones avec un code secret. Ensuite, tout se partage tout seul — menus, matchs et liste de courses.</div>
       <h4 class="mh">D'abord, votre prénom</h4>
-      <input id="fp-nom" autocomplete="given-name" placeholder="Votre prénom" value="${esc(nomConnu)}">
+      <input id="fp-nom" autocomplete="given-name" aria-label="Votre prénom" placeholder="Votre prénom" value="${esc(nomConnu)}">
       <div class="fp-choices">
         <button class="btn btn-primary btn-block" id="fp-create">Créer notre code</button>
         <button class="btn btn-ghost btn-block" id="fp-join">J'ai reçu un code</button>
@@ -2821,7 +2887,7 @@ function openPairingFacile(etape) {
     m.innerHTML = `<div class="modal-body fp">
       <h3>Écrivez le code reçu</h3>
       <div class="accroche">C'est le code que l'autre personne vous a envoyé, par exemple « citron-miel-42 ».</div>
-      <input id="fp-code" autocapitalize="none" autocomplete="off" placeholder="le code, par exemple citron-miel-42">
+      <input id="fp-code" autocapitalize="none" autocomplete="off" aria-label="Le code reçu" placeholder="le code, par exemple citron-miel-42">
       <div class="fp-choices">
         <button class="btn btn-primary btn-block" id="fp-go2">Nous relier</button>
         <button class="btn btn-ghost btn-block" id="fp-back">Revenir</button>
@@ -2850,7 +2916,7 @@ function openDuoFacile() {
       : "Votre téléphone est prêt. Dès que l'autre personne écrit le code ci-dessous dans son application, vous serez reliés."}</div>
     <div class="fp-code" style="font-size:24px">${esc(code)}</div>
     <h4 class="mh">Votre prénom</h4>
-    <input id="fd-nom" autocomplete="given-name" placeholder="Votre prénom" value="${esc(store.get("bp_mon_nom", ""))}">
+    <input id="fd-nom" autocomplete="given-name" aria-label="Votre prénom" placeholder="Votre prénom" value="${esc(store.get("bp_mon_nom", ""))}">
     <div class="fp-choices">
       <button class="btn btn-ghost btn-block" id="fd-share">Envoyer le code par message</button>
       <button class="btn btn-ghost btn-block" id="fd-aide">Revoir l'explication du début</button>
@@ -2860,7 +2926,7 @@ function openDuoFacile() {
     <div class="sub" style="font-size:13.5px">Utile si vous changez de téléphone : copiez la sauvegarde dans une note privée, puis collez-la ici sur le nouveau téléphone.</div>
     <div class="fp-choices" style="margin-top:10px">
       <button class="btn btn-ghost btn-block" id="fd-backup">Copier une sauvegarde de mes données</button>
-      <textarea id="fd-paste" rows="2" placeholder="pour restaurer : collez une sauvegarde ici…" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:10px 12px; font-size:16px; font-family:inherit"></textarea>
+      <textarea id="fd-paste" rows="2" aria-label="Coller une sauvegarde à restaurer" placeholder="pour restaurer : collez une sauvegarde ici…" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:10px 12px; font-size:16px; font-family:inherit"></textarea>
       <button class="btn btn-ghost btn-block" id="fd-restore">Restaurer cette sauvegarde</button>
       <button class="btn btn-primary btn-block" id="fd-close">Fermer</button>
     </div>
@@ -2886,10 +2952,13 @@ function openDuoFacile() {
   $("#fd-off").addEventListener("click", async e => {
     const b = e.currentTarget;
     if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Vraiment séparer ? Appuyez encore une fois"; return; }
-    try { await api.put("profil/" + RC.me, null); } catch (err) {} // l'autre téléphone voit le départ
+    let efface = true;
+    try { await api.put("profil/" + RC.me, null); } catch (err) { efface = false; }
     RC = null; store.set("bp_remote", null);
     if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
-    setDot(); closeModal(); toast("Les téléphones ne sont plus reliés"); render();
+    setDot(); closeModal();
+    toast(efface ? "Les téléphones ne sont plus reliés" : "Ce téléphone est déconnecté — l'autre le verra à sa prochaine synchronisation", efface ? 2600 : 4000);
+    render();
   });
   $("#fd-close").addEventListener("click", closeModal);
   mb.classList.add("open"); m.scrollTop = 0; m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
@@ -2927,7 +2996,7 @@ function openSettings() {
     <h4 class="mh">Sauvegarde de secours</h4>
     <div style="display:flex; flex-direction:column; gap:8px">
       <button class="btn btn-ghost btn-block" id="bk-copy">Copier ma sauvegarde (menus, favoris, courses)</button>
-      <textarea id="bk-paste" rows="2" placeholder="pour restaurer : collez une sauvegarde ici…" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:10px 12px; font-size:16px; font-family:inherit"></textarea>
+      <textarea id="bk-paste" rows="2" aria-label="Coller une sauvegarde à restaurer" placeholder="pour restaurer : collez une sauvegarde ici…" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:10px 12px; font-size:16px; font-family:inherit"></textarea>
       <button class="btn btn-ghost btn-block" id="bk-restore">Restaurer cette sauvegarde</button>
       <button class="btn btn-ghost btn-block" id="rc-close">Fermer</button>
     </div>
@@ -3034,8 +3103,13 @@ function showOnboarding() {
     const sk = el.querySelector("#ob-skip");
     if (sk) sk.addEventListener("click", () => { store.set("bp_onboard", 1); el.remove(); });
   };
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-label", "Bienvenue dans Bonne Pioche");
+  el.setAttribute("tabindex", "-1");
   paint();
   document.body.appendChild(el);
+  el.focus({ preventScroll: true });
 }
 if (typeof SIMPLE !== "undefined" && SIMPLE && !store.get("bp_onboard", 0)) showOnboarding();
 
