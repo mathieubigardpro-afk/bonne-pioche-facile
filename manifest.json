@@ -1,0 +1,14 @@
+{
+  "name": "Bonne Pioche Facile",
+  "short_name": "Pioche Facile",
+  "description": "Vos menus de la semaine, tout simplement. On choisit, la liste de courses se fait toute seule.",
+  "start_url": ".",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#FAF0EA",
+  "theme_color": "#7D4453",
+  "icons": [
+    { "src": "icon-512.png", "sizes": "512x512", "type": "image/png" },
+    { "src": "icon-180.png", "sizes": "180x180", "type": "image/png" }
+  ]
+}
