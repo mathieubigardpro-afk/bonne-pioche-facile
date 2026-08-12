@@ -104,7 +104,10 @@ nav button .bdg{
 }
 /* ================= MODE FACILE ================= */
 .nlbl{display:none}
-body.simple #topbar{display:none}
+/* en facile, la barre haute reste : point de synchro + réglages (Aa, duo, sauvegarde) */
+body.simple #btn-settings{padding:14px 13px;margin:-8px -6px}
+body.simple #btn-settings svg{width:22px;height:22px}
+body.simple #sync-dot{width:12px;height:12px}
 body.simple nav{height:66px;border-radius:26px}
 body.simple nav button{width:auto;min-width:76px;height:56px;flex-direction:column;gap:3px;border-radius:16px;display:flex}
 body.simple nav button svg{width:22px;height:22px}
@@ -172,13 +175,51 @@ body.simple .phase-note{font-size:13px}
 body.simple #toast{font-size:15.5px}
 /* mode facile : pas de favoris (onglet caché), on retire donc tous les cœurs */
 body.simple .r-row .heart,body.simple .fav-tag,body.simple .modal-fav,body.simple .mstamp{display:none}
-/* texte plus grand (bascule Aa) — s'applique aussi aux fiches (modales) et à l'accueil guidé */
-body.simple.xl #main{zoom:1.15}
-body.simple.xl .modal{zoom:1.15}
-body.simple.xl #onboard{zoom:1.15}
+/* texte plus grand (bascule Aa) : on grossit le TEXTE, jamais la structure — aucun zoom, aucune casse */
+body.simple.xl .sub{font-size:17px}
+body.simple.xl .accroche{font-size:17px;line-height:1.55}
+body.simple.xl .home-foot{font-size:15px}
+body.simple.xl h2.section{font-size:29px}
+body.simple.xl .modal-body h3{font-size:27px;max-width:none}
+body.simple.xl .fp h3{font-size:28px}
+body.simple.xl h4.mh{font-size:13px}
+body.simple.xl .ing-list li{font-size:16px;padding:8px 0}
+body.simple.xl .steps li{font-size:16px;line-height:1.6}
+body.simple.xl .batch-tip{font-size:15.5px}
+body.simple.xl .macro-grid .v{font-size:23px}
+body.simple.xl .macro-grid .k,body.simple.xl .macro-strip .k{font-size:13px}
+body.simple.xl .card-body h3{font-size:22px}
+body.simple.xl .card .accroche{font-size:15px}
+body.simple.xl .card-plate .pl{font-size:15px;max-width:280px}
+body.simple.xl .macro-strip .v{font-size:24px}
+body.simple.xl .gn{font-size:17px}
+body.simple.xl .gq{font-size:14px}
+body.simple.xl .rayon-title .rname{font-size:19px}
+body.simple.xl .rayon-title .n{font-size:13.5px}
+body.simple.xl .cell .dw{font-size:13px}
+body.simple.xl .cell .lun{font-size:13.5px}
+body.simple.xl .cell.rotcell .rline span{font-size:13.5px}
+body.simple.xl .r-row .tt .mm{font-size:14px}
+body.simple.xl .courses-tot .cs{font-size:14px}
+body.simple.xl .bc-sub{font-size:14px}
+body.simple.xl #onboard p{font-size:18px}
+body.simple.xl #onboard h2{font-size:33px}
+body.simple.xl .fp .accroche{font-size:17px}
+body.simple.xl .fp input{font-size:18px}
+body.simple.xl .btn{font-size:17px}
+body.simple.xl .nlbl{font-size:13px}
+body.simple.xl #toast{font-size:17px}
+body.simple.xl .phase-note{font-size:14.5px}
+body.simple.xl .alab{font-size:13.5px}
+body.simple.xl .deck-head .phase-lbl{font-size:17px}
 #onboard:focus{outline:none}
-.chip-row{display:flex;flex-wrap:wrap;gap:8px;justify-content:center}
-.xl-chip.on{background:var(--prune);color:var(--creme);border-color:var(--prune)}
+/* modale réglages (facile) */
+.regl-row{display:flex;align-items:center;gap:12px;background:var(--creme2);border-radius:16px;
+  padding:14px 16px;margin-top:16px;cursor:pointer;min-height:56px}
+.regl-row .rg-lbl{flex:1;font-weight:700;font-size:16px;color:var(--encre)}
+.regl-row .rg-lbl small{display:block;font-weight:500;font-size:13px;color:var(--encre-2);margin-top:2px}
+.regl-row.on .hs-sw{background:var(--olive)}
+.regl-row.on .hs-sw i{left:21px}
 .alab{display:none;font-size:11px;font-weight:800}
 /* appairage facile */
 .fp h3{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.15;color:var(--encre)}
@@ -314,7 +355,9 @@ body.simple.xl #onboard{zoom:1.15}
   font-family:var(--font-body);font-weight:700;font-size:13.5px;cursor:pointer;animation:home-in .5s ease .6s both}
 .duo-chip svg{width:16px;height:16px;flex-shrink:0}
 body.simple .home-foot{display:block;font-size:14px}
-body.simple .duo-chip{font-size:15px;min-height:44px}
+body.simple .home-mid{min-height:104px;margin:14px 0 10px}
+body.simple .home-total b{font-size:50px}
+body.simple .home-total span{margin-top:9px}
 @media (max-height:740px){
   /* petits écrans : on compacte le décor, jamais les cibles (≥44px) ni les textes (≥12px) */
   body.simple .home-date{display:none}
@@ -329,8 +372,9 @@ body.simple .duo-chip{font-size:15px;min-height:44px}
   body.simple .home-tiles{margin-top:8px}
   body.simple .home-mid{min-height:20px}
   body.simple .home-foot{font-size:12px;margin-top:6px}
-  body.simple .chip-row{margin-top:4px;gap:6px}
-  body.simple .duo-chip{min-height:44px;font-size:12.5px;padding:5px 12px}
+  body.simple .home-mid{min-height:48px;margin:8px 0 6px}
+  body.simple .home-total b{font-size:30px}
+  body.simple .home-total span{margin-top:4px}
   body.simple .home-cta.btn{padding:11px 22px;font-size:15px;min-height:44px}
 }
 @media (max-height:740px){
@@ -824,6 +868,8 @@ if (typeof SIMPLE !== "undefined" && SIMPLE) {
   document.body.classList.add("simple");
   if (store.get("bp_xl", 0)) document.body.classList.add("xl");
   if (S.tab === "favoris" || S.tab === "recettes") S.tab = "pioche";
+  const bs = document.getElementById("btn-settings");
+  if (bs) { bs.title = "Réglages"; bs.setAttribute("aria-label", "Réglages"); }
 }
 const save = {
   favoris: () => store.set("bp_fav", S.favoris),
@@ -1158,15 +1204,6 @@ function renderPiocheSetup(page) {
     </div>`}
     <button class="btn btn-primary btn-block home-cta" id="start-pioche">C'est parti</button>
     <div class="home-foot" id="home-foot">${TXT[mode].foot}</div>
-    ${(typeof SIMPLE !== "undefined" && SIMPLE) ? `<div class="chip-row">
-      ${remoteOn() ? `<button class="duo-chip" id="duo-chip">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.5-7-9.5C5 7.5 7 6 9 6c1.5 0 2.5.8 3 2 .5-1.2 1.5-2 3-2 2 0 4 1.5 4 4.5 0 5-7 9.5-7 9.5z"/></svg>
-        Notre duo${(S.rnames && S.rnames[other(RC.me)] && S.rnames[other(RC.me)].nom) ? " · " + esc(S.rnames[other(RC.me)].nom) : ""}</button>` : ""}
-      <button class="duo-chip xl-chip${store.get("bp_xl", 0) ? " on" : ""}" id="xl-chip" role="switch" aria-checked="${!!store.get("bp_xl", 0)}">Aa · Texte plus grand</button>
-      ${!remoteOn() ? `<button class="duo-chip" id="bk-chip">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3v10m0 0 4-4m-4 4-4-4"/><path d="M4 17v2a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2v-2"/></svg>
-        Sauvegarde</button>` : ""}
-    </div>` : ""}
   </div>`;
   S.sessionTargets = t;
   page.querySelectorAll(".stepper button").forEach(b => b.addEventListener("click", () => {
@@ -1216,17 +1253,43 @@ function renderPiocheSetup(page) {
     }
     startSession(t, "ensemble", null);
   });
-  const dc = $("#duo-chip");
-  if (dc) dc.addEventListener("click", openDuoFacile);
-  const xc = $("#xl-chip");
-  if (xc) xc.addEventListener("click", () => {
+}
+/* réglages du mode facile : Aa, duo, sauvegarde, aide — derrière l'engrenage en haut à droite */
+function openReglagesFacile() {
+  const mb = $("#modal-back"), m = $("#modal");
+  const xl = !!store.get("bp_xl", 0);
+  const autre = remoteOn() && S.rnames && S.rnames[other(RC.me)] && S.rnames[other(RC.me)].nom;
+  m.innerHTML = `<div class="modal-body fp">
+    <h3>Réglages</h3>
+    <div class="regl-row${xl ? " on" : ""}" id="rg-xl" role="switch" aria-checked="${xl}" tabindex="0">
+      <span class="rg-lbl">Aa · Texte plus grand<small>des textes plus lisibles, partout dans l'application</small></span>
+      <span class="hs-sw"><i></i></span>
+    </div>
+    <div class="fp-choices">
+      ${remoteOn()
+        ? `<button class="btn btn-ghost btn-block" id="rg-duo">Notre duo${autre ? " · " + esc(autre) : ""}</button>`
+        : `<button class="btn btn-ghost btn-block" id="rg-pair">Relier deux téléphones</button>`}
+      <button class="btn btn-ghost btn-block" id="rg-backup">Sauvegarde de mes données</button>
+      <button class="btn btn-ghost btn-block" id="rg-aide">Revoir l'explication du début</button>
+      <button class="btn btn-primary btn-block" id="rg-close">Fermer</button>
+    </div>
+    <div class="sub" style="margin-top:12px;text-align:center"><a href="${URL_CONF}" target="_blank" rel="noopener" style="color:var(--rose)">Où vont mes données ?</a></div>
+  </div>`;
+  const basculeXl = () => {
     const v = !store.get("bp_xl", 0);
     store.set("bp_xl", v ? 1 : 0);
     document.body.classList.toggle("xl", v);
-    xc.classList.toggle("on", v); xc.setAttribute("aria-checked", v);
-  });
-  const bc = $("#bk-chip");
-  if (bc) bc.addEventListener("click", openSauvegardeFacile);
+    const r = $("#rg-xl");
+    r.classList.toggle("on", v); r.setAttribute("aria-checked", v);
+  };
+  $("#rg-xl").addEventListener("click", basculeXl);
+  $("#rg-xl").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); basculeXl(); } });
+  const rd = $("#rg-duo"); if (rd) rd.addEventListener("click", openDuoFacile);
+  const rp = $("#rg-pair"); if (rp) rp.addEventListener("click", () => openPairingFacile());
+  $("#rg-backup").addEventListener("click", openSauvegardeFacile);
+  $("#rg-aide").addEventListener("click", () => { closeModal(); showOnboarding(); });
+  $("#rg-close").addEventListener("click", closeModal);
+  mb.classList.add("open"); m.scrollTop = 0; m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
 }
 /* sauvegarde accessible même sans appairage (mode facile) */
 function openSauvegardeFacile() {
@@ -2928,15 +2991,7 @@ function openDuoFacile() {
     <input id="fd-nom" autocomplete="given-name" aria-label="Votre prénom" placeholder="Votre prénom" value="${esc(store.get("bp_mon_nom", ""))}">
     <div class="fp-choices">
       <button class="btn btn-ghost btn-block" id="fd-share">Envoyer le code par message</button>
-      <button class="btn btn-ghost btn-block" id="fd-aide">Revoir l'explication du début</button>
       <button class="btn btn-ghost btn-block" id="fd-off" style="color:var(--tomate)">Séparer les deux téléphones</button>
-    </div>
-    <h4 class="mh">Sauvegarde de secours</h4>
-    <div class="sub" style="font-size:13.5px">Utile si vous changez de téléphone : copiez la sauvegarde dans une note privée, puis collez-la ici sur le nouveau téléphone.</div>
-    <div class="fp-choices" style="margin-top:10px">
-      <button class="btn btn-ghost btn-block" id="fd-backup">Copier une sauvegarde de mes données</button>
-      <textarea id="fd-paste" rows="2" aria-label="Coller une sauvegarde à restaurer" placeholder="pour restaurer : collez une sauvegarde ici…" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:10px 12px; font-size:16px; font-family:inherit"></textarea>
-      <button class="btn btn-ghost btn-block" id="fd-restore">Restaurer cette sauvegarde</button>
       <button class="btn btn-primary btn-block" id="fd-close">Fermer</button>
     </div>
     <div class="sub" style="margin-top:12px;text-align:center"><a href="${URL_CONF}" target="_blank" rel="noopener" style="color:var(--rose)">Où vont mes données ?</a></div>
@@ -2950,13 +3005,6 @@ function openDuoFacile() {
   $("#fd-share").addEventListener("click", () => {
     const txt = "Notre code Bonne Pioche : " + code + "\nOuvrez l'application, choisissez « Chacun son téléphone », appuyez sur « C'est parti » puis « J'ai reçu un code ».";
     partagerTexte(txt);
-  });
-  $("#fd-aide").addEventListener("click", () => { closeModal(); showOnboarding(); });
-  $("#fd-backup").addEventListener("click", copierSauvegarde);
-  $("#fd-restore").addEventListener("click", () => {
-    const v = $("#fd-paste").value.trim();
-    if (!v) { toast("Collez d'abord une sauvegarde dans la zone au-dessus"); return; }
-    restaurerDonnees(v);
   });
   $("#fd-off").addEventListener("click", async e => {
     const b = e.currentTarget;
@@ -3069,7 +3117,7 @@ function openSettings() {
   $("#rc-close").addEventListener("click", closeModal);
   mb.classList.add("open"); m.scrollTop = 0; m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
 }
-$("#btn-settings").addEventListener("click", openSettings);
+$("#btn-settings").addEventListener("click", () => (typeof SIMPLE !== "undefined" && SIMPLE) ? openReglagesFacile() : openSettings());
 
 /* ---------- Démarrage ---------- */
 S.rswipe = store.get("bp_rswipe", null);
