@@ -220,6 +220,7 @@ body.simple.xl .deck-head .phase-lbl{font-size:17px}
 .regl-row .rg-lbl small{display:block;font-weight:500;font-size:13px;color:var(--encre-2);margin-top:2px}
 .regl-row.on .hs-sw{background:var(--olive)}
 .regl-row.on .hs-sw i{left:21px}
+#filtres-compte.ambre{color:var(--abricot); font-weight:800}
 .alab{display:none;font-size:11px;font-weight:800}
 /* appairage facile */
 .fp h3{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.15;color:var(--encre)}
@@ -908,6 +909,11 @@ const S = {
   session: (() => { const s = store.get("bp_session", null); return (s && s.mode === "duo") ? null : s; })(),
   kudos: store.get("bp_kudos", {}), // V1 uniquement — { [recipeId]: { t, moi?, autre? } }
   atlas: store.get("bp_atlas", {}), // V1 uniquement — Tour du monde : { [univers]: nombrePlatsValidés }
+  // Filtres santé du foyer — V1 uniquement : en SIMPLE on ne lit ni n'écrit bp_filtres,
+  // S.filtres reste à zéro partout (passeFiltres() devient alors une no-op garantie).
+  filtres: (typeof SIMPLE !== "undefined" && SIMPLE)
+    ? { ai: 0, fodmap: 0, reflux: 0, lait: 0 }
+    : store.get("bp_filtres", { ai: 0, fodmap: 0, reflux: 0, lait: 0 }),
   tab: "pioche",
   browse: { q: "", cat: "tous", univers: "tous", tri: "aleatoire" }
 };
@@ -926,7 +932,8 @@ const save = {
   custom: () => store.set("bp_custom", S.custom),
   session: () => store.set("bp_session", S.session),
   kudos: () => store.set("bp_kudos", S.kudos),
-  atlas: () => store.set("bp_atlas", S.atlas)
+  atlas: () => store.set("bp_atlas", S.atlas),
+  filtres: () => store.set("bp_filtres", S.filtres)
 };
 
 const byId = {};
@@ -1113,6 +1120,23 @@ function toggleFav(id) {
   save.favoris(); rsync.fav(id, S.favoris.includes(id)); render();
 }
 function recentIds() { return new Set([].concat.apply([], S.hist)); }
+
+/* ---------- Filtres santé du foyer (V1 uniquement) ----------
+   ai = anti-inflammatoire, fodmap = pauvre en FODMAP, reflux = doux pour le reflux,
+   lait = sans produits laitiers. En SIMPLE, S.filtres reste à {0,0,0,0} (cf. §S plus haut),
+   donc FILTRES_SANTE_ACTIFS renvoie toujours [] et passeFiltres() renvoie toujours true :
+   zéro changement de comportement en Facile. */
+const FILTRES_SANTE = ["ai", "fodmap", "reflux", "lait"];
+const FILTRES_SANTE_LABELS = { ai: "🌿 Anti-inflammatoire", fodmap: "🫘 Pauvre en FODMAP", reflux: "🍋 Doux pour le reflux", lait: "🥛 Sans produits laitiers" };
+function filtresActifs() { return FILTRES_SANTE.filter(f => S.filtres && S.filtres[f]); }
+/* true si, pour CHAQUE filtre actif f, r.sante existe et r.sante[f]===1. Fonction totale :
+   ne jette jamais, même si r.sante est absent (build Facile) ou r est incomplet. */
+function passeFiltres(r) {
+  const actifs = filtresActifs();
+  if (!actifs.length) return true;
+  if (!r || !r.sante) return false;
+  return actifs.every(f => r.sante[f] === 1);
+}
 
 /* ---------- Navigation ---------- */
 document.querySelectorAll("nav button").forEach(b => {
@@ -1305,15 +1329,16 @@ function renderPiocheSetup(page) {
           toast(partnerName() !== "l'autre" ? `${partnerName()} a déjà lancé une partie — on vous y emmène` : "Une partie est déjà lancée — on vous y emmène", 3000);
           render(); return;
         }
-        const excl = Array.from(recentIds());
+        // le créateur seul étend excl selon ses filtres santé actifs (déterministe) : le
+        // résultat voyage dans ses.excl, donc les deux téléphones reconstruisent le même deck
+        const excl = extendExclForFiltres(Array.from(recentIds()), t);
         const ns = { id: Date.now() + "-" + Math.floor(Math.random() * 1e6), targets: { ...t }, excl, votes: { p1: { _: 0 }, p2: { _: 0 } }, done: { p1: { _: 0 }, p2: { _: 0 } }, validated: false, createdBy: RC.me };
         await api.put("session", ns); S.rsession = ns; _lastRoom = ""; toast((typeof SIMPLE !== "undefined" && SIMPLE) ? "C'est parti — choisissez vos plats" : "Pioche lancée — à vos swipes"); render();
       } catch (e) { syncErr(e); }
       finally { delete btn.dataset.busy; }
       return;
     }
-    if (typeof SIMPLE !== "undefined" && SIMPLE) { startSession(t, "ensemble", null); return; }
-    openMoodModal(mood => startSession(t, "ensemble", null, mood));
+    startSession(t, "ensemble", null);
   });
 }
 /* réglages du mode facile : Aa, duo, sauvegarde, aide — derrière l'engrenage en haut à droite */
@@ -1377,60 +1402,6 @@ function openSauvegardeFacile() {
   mb.classList.add("open"); m.scrollTop = 0; m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
 }
 
-/* ---------- Météo d'appétit (V1 uniquement) : boost de tri, jamais un filtre dur ---------- */
-const MOOD_OPTIONS = [
-  { v: "pouce", emoji: "⚡", lbl: "Sur le pouce" },
-  { v: "reconfort", emoji: "🤗", lbl: "Réconfort" },
-  { v: "leger", emoji: "🌿", lbl: "Légèreté" },
-  { v: "peuimporte", emoji: "🎲", lbl: "Peu importe" }
-];
-function moodLabel(mood) { const o = MOOD_OPTIONS.find(x => x.v === mood); return o ? o.lbl : ""; }
-function moodEmoji(mood) { const o = MOOD_OPTIONS.find(x => x.v === mood); return o ? o.emoji : ""; }
-function moodBoost(r, mood) {
-  try {
-    if (!r || !mood) return 0;
-    const badges = r.badges || [];
-    if (mood === "pouce") {
-      if (badges.indexOf("express") >= 0 || r.tempsActif <= 15) return 2.2;
-      if (r.tempsActif <= 20) return 1;
-      return 0;
-    }
-    if (mood === "reconfort") {
-      const univ = ["Terroir & Europe revisités", "Amérique latine & soleil"];
-      if (univ.indexOf(r.univers) >= 0 || (r.macros && r.macros.kcal >= 560)) return 2;
-      const txt = ((r.batchTip || "") + " " + (r.nom || ""));
-      if (/mijot|four|gratin/i.test(txt)) return 1;
-      return 0;
-    }
-    if (mood === "leger") {
-      const univ = ["Océan — poissons & fruits de mer", "Veggie protéiné & céréales du monde"];
-      if ((r.macros && r.macros.kcal <= 480) || univ.indexOf(r.univers) >= 0) return 2;
-      if (badges.indexOf("digestion-facile") >= 0) return 1;
-      return 0;
-    }
-    return 0;
-  } catch (e) { return 0; }
-}
-/* modale « L'humeur du soir ? » — réutilise #modal/#modal-back, garde de fond,
-   Échap = « Peu importe » (cf. _modalEscHandler près de closeModal) */
-let _modalEscHandler = null;
-function openMoodModal(cb) {
-  const mb = $("#modal-back"), m = $("#modal");
-  mb.dataset.garde = "1";
-  m.innerHTML = `<div class="modal-body fp">
-    <h3>L'humeur du soir ?</h3>
-    <div class="accroche">Un seul tap — le jeu s'adapte à votre soirée.</div>
-    <div class="fp-choices" id="mood-choices">
-      ${MOOD_OPTIONS.map(o => `<button class="btn btn-ghost btn-block" style="min-height:52px" data-mood="${o.v}">${o.emoji} ${esc(o.lbl)}</button>`).join("")}
-    </div>
-  </div>`;
-  _modalEscHandler = () => { closeModal(); cb("peuimporte"); };
-  m.querySelectorAll("[data-mood]").forEach(b => b.addEventListener("click", () => {
-    const mood = b.dataset.mood;
-    _modalEscHandler = null; closeModal(); cb(mood);
-  }));
-  mb.classList.add("open"); m.scrollTop = 0; m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
-}
 /* ---------- Kudos d'après-repas (V1 uniquement) ---------- */
 function kudosOf(id) { return S.kudos[id] || null; }
 function kudosBoost(id) {
@@ -1551,32 +1522,49 @@ function initAtlasOnce() {
   (S.hist || []).forEach(arr => (arr || []).forEach(id => ids.add(id)));
   if (ids.size) atlasAdd(Array.from(ids));
 }
-function buildQueue(cat, target, mood) {
+let _filtresToastShown = false; // un seul toast de complément par session d'application
+function buildQueue(cat, target) {
   const recent = recentIds();
-  const pool = RECETTES.filter(r => r.categorie === cat);
-  const scored = pool.map(r => ({
-    r,
-    // r.micro (V1 uniquement) : alignement avec le rapport microbiote — remonte doucement
-    // les recettes favorables, sans jamais exclure les autres
-    s: (isFav(r.id) ? 2.2 : 0) + (recent.has(r.id) ? -3 : 0) + (r.micro || 0) * 0.45
-      + moodBoost(r, mood) + kudosBoost(r.id) + Math.random() * 2
-  }));
+  const poolAll = RECETTES.filter(r => r.categorie === cat);
+  // r.micro (V1 uniquement) : alignement avec le rapport microbiote — remonte doucement
+  // les recettes favorables, sans jamais exclure les autres
+  const scoreOf = r => (isFav(r.id) ? 2.2 : 0) + (recent.has(r.id) ? -3 : 0) + (r.micro || 0) * 0.45
+    + kudosBoost(r.id) + Math.random() * 2;
+  // Filtres santé du foyer (V1 uniquement, filtre DUR) : le pool se restreint aux recettes
+  // conformes ; si ça ne suffit pas, on complète avec les recettes non conformes les mieux
+  // classées (nb de filtres actifs satisfaits, puis le score existant) — jamais l'inverse.
+  const actifs = filtresActifs();
+  let base = poolAll;
+  if (actifs.length) {
+    const ok = poolAll.filter(passeFiltres);
+    if (ok.length < target) {
+      const nonOk = poolAll.filter(r => !passeFiltres(r));
+      const nbSat = r => actifs.reduce((n, f) => n + ((r.sante && r.sante[f] === 1) ? 1 : 0), 0);
+      const rangNonOk = nonOk.map(r => ({ r, sat: nbSat(r), s: scoreOf(r) }))
+        .sort((a, b) => (b.sat - a.sat) || (b.s - a.s));
+      const need = Math.max(0, Math.min(nonOk.length, target * 3 + 6 - ok.length));
+      base = ok.concat(rangNonOk.slice(0, need).map(x => x.r));
+      if (!_filtresToastShown) { _filtresToastShown = true; toast("Pas assez de plats 100 % compatibles — complété au plus proche."); }
+    } else {
+      base = ok;
+    }
+  }
+  const scored = base.map(r => ({ r, s: scoreOf(r) }));
   scored.sort((a, b) => b.s - a.s);
-  return scored.slice(0, Math.min(pool.length, target * 3 + 6)).map(x => x.r.id);
+  return scored.slice(0, Math.min(base.length, target * 3 + 6)).map(x => x.r.id);
 }
-function startSession(t, mode, names, mood) {
+function startSession(t, mode, names) {
   S.session = {
     mode: mode || "ensemble",
     names: names || null,
-    mood: mood || null, // V1 uniquement — météo d'appétit
     targets: { diner: t.diner, petitdej: t.petitdej, collation: t.collation },
     phase: 0,
     liked: { diner: [], petitdej: [], collation: [] },
     chosenBy: {},
     queues: {
-      diner: buildQueue("diner", t.diner, mood),
-      petitdej: buildQueue("petitdej", t.petitdej, mood),
-      collation: buildQueue("collation", t.collation, mood)
+      diner: buildQueue("diner", t.diner),
+      petitdej: buildQueue("petitdej", t.petitdej),
+      collation: buildQueue("collation", t.collation)
     },
     idx: 0,
     finished: false,
@@ -1720,14 +1708,11 @@ function renderDeck(page) {
 
   const dots = Array.from({ length: target }, (_, i) => `<span class="${i < liked.length ? "on" : ""}"></span>`).join("");
   const top3 = remaining.slice(0, 3).map(id => byId[id]).filter(Boolean);
-  // rappel discret du mood choisi (V1 uniquement) — émoji seul, jamais en Facile
-  const moodChip = (!(typeof SIMPLE !== "undefined" && SIMPLE) && ses.mood && ses.mood !== "peuimporte")
-    ? `<span class="chip" title="${esc(moodLabel(ses.mood))}" style="margin-left:6px;padding:4px 9px" id="mood-chip">${moodEmoji(ses.mood)}</span>` : "";
   const head = duo
     ? `<div class="phase-lbl">${esc(ses.names[ses.current])} · ${esc(ph.titre)}</div>
-       <div class="count">${liked.length}/${target}${moodChip}</div>`
+       <div class="count">${liked.length}/${target}</div>`
     : `<div class="phase-lbl">${esc(ph.titre)}${ph.note ? `<small class="phase-note">${esc(ph.note)}</small>` : ""}</div>
-       <div class="count">${liked.length}/${target}${moodChip}</div>`;
+       <div class="count">${liked.length}/${target}</div>`;
 
   const vedette = top3[0];
   page.classList.add("deck-mode");
@@ -2862,10 +2847,9 @@ function openModal(id) {
   m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
   m.scrollTop = 0;
 }
-function closeModal() { const mb = $("#modal-back"); delete mb.dataset.garde; mb.classList.remove("open"); _modalEscHandler = null; }
+function closeModal() { const mb = $("#modal-back"); delete mb.dataset.garde; mb.classList.remove("open"); }
 document.addEventListener("keydown", e => {
   if (e.key === "Escape" && $("#modal-back").classList.contains("open")) {
-    if (_modalEscHandler) { const f = _modalEscHandler; _modalEscHandler = null; f(); return; }
     closeModal();
   }
 });
@@ -3045,6 +3029,36 @@ function seededShuffle(arr, seedStr) {
   for (let i = a.length - 1; i > 0; i--) { const k = Math.floor(rng() * (i + 1)); [a[i], a[k]] = [a[k], a[i]]; }
   return a;
 }
+/* Filtres santé du foyer (V1) — étend l'exclusion de la pioche distante, de façon
+   déterministe. Appelé UNIQUEMENT par le créateur de session : le résultat voyage dans
+   ses.excl, donc les deux téléphones reconstruisent mécaniquement le MÊME deck (contrainte
+   n°1 : contenu identique, seuls les ids d'excl changent la donne). En SIMPLE ou sans
+   filtre actif, filtresActifs() est vide → renvoie baseExcl inchangé (zéro régression). */
+function extendExclForFiltres(baseExcl, targets) {
+  const actifs = filtresActifs();
+  if (!actifs.length) return baseExcl;
+  const baseSet = new Set(baseExcl);
+  const exclSet = new Set(baseExcl);
+  const nbSat = r => actifs.reduce((n, f) => n + ((r.sante && r.sante[f] === 1) ? 1 : 0), 0);
+  RECETTES.forEach(r => { if (!passeFiltres(r)) exclSet.add(r.id); });
+  PHASES.forEach(ph => {
+    const cat = ph.cat;
+    const plancher = ((targets && targets[cat]) || 0) + 6;
+    const catRecettes = RECETTES.filter(r => r.categorie === cat);
+    const restantes = catRecettes.filter(r => !exclSet.has(r.id)).length;
+    if (restantes >= plancher) return;
+    // ne réintègre QUE les ids exclus par les filtres (jamais ceux de l'anti-répétition) —
+    // ordre déterministe : nombre de filtres satisfaits décroissant, puis id croissant
+    const candidats = catRecettes.filter(r => exclSet.has(r.id) && !baseSet.has(r.id));
+    candidats.sort((a, b) => (nbSat(b) - nbSat(a)) || (a.id < b.id ? -1 : a.id > b.id ? 1 : 0));
+    let besoin = plancher - restantes;
+    for (const r of candidats) {
+      if (besoin <= 0) break;
+      exclSet.delete(r.id); besoin--;
+    }
+  });
+  return Array.from(exclSet);
+}
 /* état déterministe d'une phase à partir des votes + rounds terminés */
 function remotePhaseState(ses, cat) {
   const target = ses.targets[cat];
@@ -3159,19 +3173,9 @@ function renderRemotePioche(page) {
   attachRowEvents(page);
   page.querySelectorAll("[data-swipe]").forEach(b => b.addEventListener("click", () => {
     const cat = b.dataset.swipe, st = states[cat];
-    const create = mood => {
-      // même deck (mêmes ids, contrainte n°1) — seul l'ordre local change, tri stable par moodBoost
-      let deck = st.deck;
-      if (mood && mood !== "peuimporte") {
-        deck = deck.map((id, i) => ({ id, i, b: moodBoost(byId[id], mood) }))
-          .sort((a, b2) => (b2.b - a.b) || (a.i - b2.i))
-          .map(x => x.id);
-      }
-      S.rswipe = { sessionId: ses.id, cat, round: st.round, deck, idx: 0, likes: {}, mood: mood || null };
-      store.set("bp_rswipe", S.rswipe); render();
-    };
-    if (typeof SIMPLE !== "undefined" && SIMPLE) { create(null); return; }
-    openMoodModal(create);
+    // même deck (mêmes ids, contrainte n°1), même ordre : aucun réordonnancement local
+    S.rswipe = { sessionId: ses.id, cat, round: st.round, deck: st.deck, idx: 0, likes: {} };
+    store.set("bp_rswipe", S.rswipe); render();
   }));
   $("#abort-remote").addEventListener("click", async e => {
     const b = e.currentTarget;
@@ -3187,9 +3191,6 @@ function renderRemoteDeck(page) {
   const top3 = remaining.slice(0, 3).map(id => byId[id]).filter(Boolean);
   const vedette = top3[0];
   page.classList.add("deck-mode");
-  // rappel discret du mood choisi (V1 uniquement) — émoji seul, jamais en Facile
-  const moodChip = (!(typeof SIMPLE !== "undefined" && SIMPLE) && rs.mood && rs.mood !== "peuimporte")
-    ? `<span class="chip" title="${esc(moodLabel(rs.mood))}" style="margin-left:6px;padding:4px 9px" id="mood-chip">${moodEmoji(rs.mood)}</span>` : "";
   page.innerHTML = `
   ${vedette ? monoSVG(vedette) : ""}
   ${vtitleHTML(vedette)}
@@ -3199,7 +3200,7 @@ function renderRemoteDeck(page) {
       ${(rs.undo && rs.idx > 0) ? `<button class="deck-back" id="deck-undo" title="Reprendre la dernière carte" aria-label="Reprendre la dernière carte">${UNDO_IC}</button>` : ""}
       <div class="dh-mid">
         <div class="phase-lbl">${esc(ph.titre)} · manche ${rs.round}</div>
-        <div class="count">${rs.idx + 1}/${rs.deck.length}${moodChip}</div>
+        <div class="count">${rs.idx + 1}/${rs.deck.length}</div>
       </div>
     </div>
     <div class="deck" id="deck">${top3.map((r, i) => cardHTML(r, i)).reverse().join("")}</div>
@@ -3486,6 +3487,12 @@ function openSettings() {
     <button class="btn btn-sm ${budgetSerre() ? "btn-primary" : "btn-ghost"} btn-block" id="bg-serre" style="margin-top:8px">
       ${budgetSerre() ? "✓ " : ""}Mode budget serré — proposer d'abord ce qui coûte le moins</button>
     <div class="sub" style="margin-top:6px; font-size:12px">Prix moyens de supermarché, à ±20 %. L'épicerie sèche est comptée au prorata, le frais en paquets entiers.</div>
+    <h4 class="mh" style="margin-top:22px">Filtres santé du foyer</h4>
+    <div class="sub" style="margin-top:-2px">Les prochaines pioches ne proposent que des plats compatibles.</div>
+    ${FILTRES_SANTE.map(f => `<div class="regl-row${S.filtres[f] ? " on" : ""}" data-filtre="${f}" role="switch" aria-checked="${!!S.filtres[f]}" tabindex="0">
+      <span class="rg-lbl">${FILTRES_SANTE_LABELS[f]}</span><span class="hs-sw"><i></i></span>
+    </div>`).join("")}
+    <div class="sub" id="filtres-compte" style="margin-top:10px; text-align:center; font-weight:700"></div>
     <h4 class="mh">1 · URL de la base Firebase</h4>
     <input id="rc-url" class="add-item-row" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:11px 13px; font-size:16px" placeholder="https://xxx-default-rtdb.europe-west1.firebasedatabase.app" value="${esc(rc.url)}">
     <h4 class="mh">2 · Code du foyer <button class="btn btn-ghost btn-sm" id="rc-gen">Générer un code</button></h4>
@@ -3510,6 +3517,28 @@ function openSettings() {
     </div>
     <div class="sub" style="margin-top:10px">Le code du foyer est votre secret : quiconque le connaît peut lire et modifier vos menus. <a href="${URL_CONF}" target="_blank" rel="noopener" style="color:var(--prune)">Confidentialité</a></div>
   </div>`;
+  const majFiltresCompte = () => {
+    const el = $("#filtres-compte");
+    if (!el) return;
+    const diners = RECETTES.filter(r => r.categorie === "diner");
+    const n = diners.filter(passeFiltres).length;
+    const resserre = n < 30;
+    el.textContent = `${n} dîners compatibles sur ${diners.length}` + (resserre ? " — sélection très resserrée" : "");
+    el.classList.toggle("ambre", resserre);
+  };
+  const toggleFiltre = row => {
+    const f = row.dataset.filtre;
+    S.filtres[f] = S.filtres[f] ? 0 : 1;
+    save.filtres();
+    row.classList.toggle("on", !!S.filtres[f]);
+    row.setAttribute("aria-checked", !!S.filtres[f]);
+    majFiltresCompte();
+  };
+  m.querySelectorAll("[data-filtre]").forEach(row => {
+    row.addEventListener("click", () => toggleFiltre(row));
+    row.addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); toggleFiltre(row); } });
+  });
+  majFiltresCompte();
   $("#bg-cible").addEventListener("change", e => {
     const v = Math.max(0, parseInt(e.target.value) || 0);
     store.set("bp_budget", v); toast(v ? "Objectif : " + eur(v) + " par semaine" : "Objectif retiré");
