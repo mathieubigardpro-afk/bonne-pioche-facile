@@ -467,7 +467,12 @@ body.simple .phase-note{font-size:12px}
 /* ---- bascule de mode animée ---- */
 .home-mode button{transition:background .28s cubic-bezier(.4,0,.2,1),color .28s}
 .home-mode button:active{transform:scale(.97)}
-.home-q.swapping,.home-foot.swapping{animation:home-swap .38s cubic-bezier(.22,1,.36,1)}
+/* pile de variantes : les deux textes occupent la même cellule de grille,
+   la hauteur du bloc est donc identique dans les deux modes, au pixel près */
+.home-q,.home-foot{display:grid}
+.home-q > .qv,.home-foot > .fv{grid-area:1/1;opacity:0;pointer-events:none;visibility:hidden}
+.home-q > .qv.on,.home-foot > .fv.on{opacity:1;pointer-events:auto;visibility:visible}
+.qv.swapping,.fv.swapping{animation:home-swap .38s cubic-bezier(.22,1,.36,1)}
 @keyframes home-swap{from{opacity:0;transform:translateY(9px)}to{opacity:1;transform:none}}
 /* ---- budget serré sur l'accueil ---- */
 .home-serre{display:flex;align-items:center;gap:11px;background:var(--blanc);border-radius:18px;
@@ -1202,10 +1207,17 @@ function renderPiocheSetup(page) {
         : "Ce mode demande d'abord de relier vos deux téléphones — le bouton ⚙️ en haut à droite vous guide."
     }
   };
+  // Les deux variantes de texte cohabitent dans la même cellule (pile de grille) :
+  // la bascule de mode ne change que la visibilité — la hauteur est identique par
+  // construction, au pixel près, quelles que soient la police et la taille d'écran.
+  const pile = (cls, contenu) => ["ensemble", "remote"].map(k =>
+    `<span class="${cls}${k === mode ? " on" : ""}" data-v="${k}" ${k === mode ? "" : 'aria-hidden="true"'}>${contenu[k]}</span>`).join("");
+  const Q = { ensemble: TXT.ensemble.q, remote: TXT.remote.q };
+  const F = { ensemble: TXT.ensemble.foot, remote: TXT.remote.foot };
   page.innerHTML = `
   <div class="pioche-setup home">
     <div class="home-date">${todayLine()}</div>
-    <h1 class="home-q" id="home-q">${TXT[mode].q}</h1>
+    <h1 class="home-q" id="home-q">${pile("qv", Q)}</h1>
     ${tilesHTML(t)}
     ${midHTML(t)}
     <div class="home-mode">
@@ -1217,7 +1229,7 @@ function renderPiocheSetup(page) {
       <span class="hs-sw"><i></i></span>
     </div>`}
     <button class="btn btn-primary btn-block home-cta" id="start-pioche">C'est parti</button>
-    <div class="home-foot" id="home-foot">${TXT[mode].foot}</div>
+    <div class="home-foot" id="home-foot">${pile("fv", F)}</div>
   </div>`;
   S.sessionTargets = t;
   page.querySelectorAll(".stepper button").forEach(b => b.addEventListener("click", () => {
@@ -1225,14 +1237,19 @@ function renderPiocheSetup(page) {
     $("#t-" + k).textContent = t[k];
     const tot = $("#home-total-v"); if (tot) tot.textContent = t.diner + t.petitdej + t.collation;
   }));
-  const swap = (el, html) => { el.classList.remove("swapping"); void el.offsetWidth; el.innerHTML = html; el.classList.add("swapping"); };
   page.querySelectorAll("[data-mode]").forEach(b => b.addEventListener("click", () => {
     if (b.dataset.mode === mode) return;
     mode = b.dataset.mode;
     S.pendingMode = mode; store.set("bp_mode", mode);
     page.querySelectorAll("[data-mode]").forEach(x => x.classList.toggle("on", x.dataset.mode === mode));
-    swap($("#home-q"), TXT[mode].q);
-    swap($("#home-foot"), TXT[mode].foot);
+    // bascule de visibilité uniquement : aucune modification du flux de mise en page
+    page.querySelectorAll(".qv, .fv").forEach(s => {
+      const on = s.dataset.v === mode;
+      s.classList.remove("swapping"); void s.offsetWidth;
+      s.classList.toggle("on", on);
+      if (on) { s.classList.add("swapping"); s.removeAttribute("aria-hidden"); }
+      else s.setAttribute("aria-hidden", "true");
+    });
   }));
   const hs = $("#home-serre");
   if (hs) hs.addEventListener("click", () => {
