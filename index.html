@@ -2129,32 +2129,55 @@ function blendCardHTML(blend) {
 }
 /* ---------- Tour du monde du foyer (V1 uniquement) — carte stylisée + légende ---------- */
 const ATLAS_PATHS = {
-  europe: "M55,30 C45,22 62,10 82,14 C100,17 106,32 98,44 C90,56 68,58 56,48 C46,40 47,36 55,30 Z",
-  levant: "M118,55 C110,44 128,34 148,38 C164,41 170,56 160,68 C150,80 128,80 118,68 C110,59 111,60 118,55 Z",
-  asie: "M190,35 C178,18 218,4 252,14 C284,23 292,50 272,66 C252,82 210,80 192,64 C176,50 180,44 190,35 Z",
-  latam: "M50,80 C40,72 56,62 68,68 C78,73 80,90 74,108 C69,126 58,150 46,148 C34,146 32,120 38,102 C42,90 44,86 50,80 Z",
-  ocean: "M250,120 C244,112 260,104 278,108 C296,112 304,128 296,140 C288,152 262,154 250,144 C240,136 242,128 250,120 Z"
+  europe: "M152,44 C148,34 154,26 162,28 C164,20 172,16 178,20 C186,16 194,22 192,30 C190,38 184,44 176,46 C168,50 158,52 152,44 Z",
+  levant: "M192,52 C190,44 198,38 208,40 C219,42 224,50 222,60 C220,70 213,78 204,76 C196,74 192,64 192,52 Z",
+  asie: "M234,32 C232,18 254,7 280,10 C306,13 326,22 327,36 C328,50 316,57 302,59 C296,72 288,81 278,77 C269,73 266,62 256,60 C246,58 236,46 234,32 Z",
+  latam: "M66,92 C74,84 88,86 92,96 C96,108 92,124 84,140 C79,150 72,158 66,152 C60,146 58,128 58,112 C58,102 60,98 66,92 Z",
+  ocean: "M16,122 C22,112 44,110 52,120 C58,128 54,140 42,144 C30,148 17,142 15,134 C14,128 15,126 16,122 Z"
+};
+/* continents non suivis, en contour discret : ancrent la lecture "carte du monde" */
+const ATLAS_FOND = [
+  "M18,44 C12,30 26,16 50,15 C72,14 86,24 82,36 C78,46 66,48 60,56 C55,64 50,74 44,78 C39,80 36,72 34,64 C27,58 22,52 18,44 Z",
+  "M148,62 C144,54 152,48 164,50 C178,52 190,54 192,64 C194,74 188,80 186,92 C184,106 178,122 168,126 C158,130 150,118 148,104 C146,90 144,74 148,62 Z",
+  "M292,124 C290,116 302,110 314,114 C326,118 330,128 324,136 C318,144 300,146 292,138 C286,132 288,128 292,124 Z"
+];
+const ATLAS_LABELS = {
+  europe: { x: 172, y: 13, anchor: "middle" },
+  levant: { x: 207, y: 92, anchor: "middle" },
+  asie: { x: 284, y: 94, anchor: "middle" },
+  latam: { x: 98, y: 134, anchor: "start" },
+  ocean: { x: 34, y: 162, anchor: "middle" }
 };
 function worldSVGHTML(totals) {
+  const fond = ATLAS_FOND.map(d => `<path d="${d}" fill="none" stroke="var(--prune-l)" stroke-width="1.3" opacity=".26"/>`).join("");
   const region = key => {
     const n = totals[key] || 0;
     const op = atlasFillOpacity(n);
     const fg = univColor(ATLAS_REGIONS[key].main).fg;
     return `<path data-region="${key}" d="${ATLAS_PATHS[key]}" fill="${fg}" fill-opacity="${op}" stroke="var(--prune-l)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;
   };
-  const waves = `<g stroke="var(--prune-l)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".55">
-    <path d="M244,131 q8,-7 16,0 q8,7 16,0"/>
-    <path d="M244,141 q8,-7 16,0 q8,7 16,0"/>
+  const label = key => {
+    const p = ATLAS_LABELS[key];
+    const n = totals[key] || 0;
+    const txt = (n > 0 ? `${ATLAS_REGIONS[key].label} · ${n}` : ATLAS_REGIONS[key].label).toUpperCase();
+    return `<text x="${p.x}" y="${p.y}" text-anchor="${p.anchor}" font-size="9" letter-spacing=".8" font-weight="600" fill="var(--prune)" opacity="${n > 0 ? 0.85 : 0.38}" style="font-family:Inter,system-ui,sans-serif">${esc(txt)}</text>`;
+  };
+  const waves = `<g stroke="var(--prune-l)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".6">
+    <path d="M23,125 q6,-5 12,0 q6,5 12,0"/>
+    <path d="M23,134 q6,-5 12,0 q6,5 12,0"/>
   </g>`;
-  return `<svg class="atlas-map" viewBox="0 0 340 170" aria-hidden="true">
-    ${["europe", "levant", "asie", "latam", "ocean"].map(region).join("")}
+  const keys = ["europe", "levant", "asie", "latam", "ocean"];
+  return `<svg class="atlas-map" viewBox="0 0 340 176" aria-hidden="true">
+    ${fond}
+    ${keys.map(region).join("")}
     ${waves}
+    ${keys.map(label).join("")}
   </svg>`;
 }
 function atlasLegendHTML(totals) {
   const chips = Object.keys(ATLAS_REGIONS).filter(k => totals[k] > 0).map(k => {
     const rg = ATLAS_REGIONS[k];
-    return `<span class="chip atlas-chip">${rg.emoji} ${totals[k]} plat${totals[k] > 1 ? "s" : ""}</span>`;
+    return `<span class="chip atlas-chip">${rg.emoji} ${esc(rg.label)} · ${totals[k]} plat${totals[k] > 1 ? "s" : ""}</span>`;
   }).join("");
   return chips ? `<div class="atlas-legend">${chips}</div>` : "";
 }
@@ -2172,8 +2195,9 @@ function atlasCardHTML() {
   const anyFilled = Object.keys(totals).some(k => totals[k] > 0);
   return `<div class="budget-card atlas-card">
     <div class="bc-head"><span class="caps">Votre tour du monde</span></div>
+    <div class="bc-sub">Chaque plat validé colore la région du monde dont il s'inspire.</div>
     ${worldSVGHTML(totals)}
-    ${anyFilled ? atlasLegendHTML(totals) : `<div class="bc-sub">Chaque menu validé colore votre carte.</div>`}
+    ${anyFilled ? atlasLegendHTML(totals) : `<div class="bc-sub">Validez votre premier menu pour colorer une première région.</div>`}
     ${atlasOtherHTML()}
   </div>`;
 }
