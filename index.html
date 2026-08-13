@@ -584,6 +584,32 @@ body.simple .phase-note{font-size:12px}
 .cell.rotcell .rline{display:flex;align-items:center;gap:6px;margin-top:5px;cursor:pointer}
 .cell.rotcell .rline .picto{width:19px;margin:0;flex-shrink:0}
 .cell.rotcell .rline span{font-size:10.5px;color:var(--encre);font-weight:600;line-height:1.2}
+/* ---- kudos d'après-repas (V1 uniquement) ---- */
+.kudos-row{display:flex;gap:4px;margin-top:7px}
+.kudos-btn{
+  flex:1;min-height:40px;border:none;border-radius:11px;background:var(--creme2);color:var(--prune);
+  font-size:10.5px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;
+  gap:2px;padding:2px 3px;text-align:center;line-height:1.15;font-family:var(--font-body);
+}
+.kudos-btn.on{background:var(--prune);color:#FCEFE6}
+.kudos-partner{font-size:9.5px;color:var(--rose);font-weight:600;text-align:center;margin-top:4px;line-height:1.25}
+/* ---- Blend du couple (V1 uniquement) ---- */
+.blend-card{margin-top:14px}
+.blend-row{display:flex;align-items:center;gap:14px;margin-top:9px}
+.blend-ring{flex-shrink:0;line-height:0}
+.blend-info{flex:1;min-width:0}
+.blend-matchs{font-family:var(--font-display);font-weight:700;font-size:15px;color:var(--encre);line-height:1.25}
+.blend-phrase{font-size:12px;color:var(--encre-2);margin-top:4px;line-height:1.4}
+.blend-hist{margin-top:12px;border-top:1px solid #F2E6E0;padding-top:9px}
+.bb-bars{display:flex;align-items:flex-end;gap:4px;height:36px}
+.bb-bar{flex:1;min-width:5px;max-width:16px;border-radius:3px 3px 0 0;background:var(--rose-l)}
+.bb-bar.on{background:var(--prune)}
+.bb-legend{margin-top:5px;text-align:center;font-size:9px}
+/* ---- Tour du monde du foyer (V1 uniquement) ---- */
+.atlas-card{margin-top:14px}
+.atlas-map{width:100%;height:auto;display:block;margin-top:8px}
+.atlas-legend{display:flex;flex-wrap:wrap;gap:6px;margin-top:11px}
+.atlas-autres{margin-top:8px}
 /* rétrocompat semaine */
 .day-block,.day-lbl,.rot-grid{display:block}
 /* ================= COURSES — ticket de caisse ================= */
@@ -880,6 +906,8 @@ const S = {
     return c;
   })(),
   session: (() => { const s = store.get("bp_session", null); return (s && s.mode === "duo") ? null : s; })(),
+  kudos: store.get("bp_kudos", {}), // V1 uniquement — { [recipeId]: { t, moi?, autre? } }
+  atlas: store.get("bp_atlas", {}), // V1 uniquement — Tour du monde : { [univers]: nombrePlatsValidés }
   tab: "pioche",
   browse: { q: "", cat: "tous", univers: "tous", tri: "aleatoire" }
 };
@@ -896,7 +924,9 @@ const save = {
   week: () => store.set("bp_week", S.week),
   checked: () => store.set("bp_checked", S.checked),
   custom: () => store.set("bp_custom", S.custom),
-  session: () => store.set("bp_session", S.session)
+  session: () => store.set("bp_session", S.session),
+  kudos: () => store.set("bp_kudos", S.kudos),
+  atlas: () => store.set("bp_atlas", S.atlas)
 };
 
 const byId = {};
@@ -1282,7 +1312,8 @@ function renderPiocheSetup(page) {
       finally { delete btn.dataset.busy; }
       return;
     }
-    startSession(t, "ensemble", null);
+    if (typeof SIMPLE !== "undefined" && SIMPLE) { startSession(t, "ensemble", null); return; }
+    openMoodModal(mood => startSession(t, "ensemble", null, mood));
   });
 }
 /* réglages du mode facile : Aa, duo, sauvegarde, aide — derrière l'engrenage en haut à droite */
@@ -1346,30 +1377,206 @@ function openSauvegardeFacile() {
   mb.classList.add("open"); m.scrollTop = 0; m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
 }
 
-function buildQueue(cat, target) {
+/* ---------- Météo d'appétit (V1 uniquement) : boost de tri, jamais un filtre dur ---------- */
+const MOOD_OPTIONS = [
+  { v: "pouce", emoji: "⚡", lbl: "Sur le pouce" },
+  { v: "reconfort", emoji: "🤗", lbl: "Réconfort" },
+  { v: "leger", emoji: "🌿", lbl: "Légèreté" },
+  { v: "peuimporte", emoji: "🎲", lbl: "Peu importe" }
+];
+function moodLabel(mood) { const o = MOOD_OPTIONS.find(x => x.v === mood); return o ? o.lbl : ""; }
+function moodEmoji(mood) { const o = MOOD_OPTIONS.find(x => x.v === mood); return o ? o.emoji : ""; }
+function moodBoost(r, mood) {
+  try {
+    if (!r || !mood) return 0;
+    const badges = r.badges || [];
+    if (mood === "pouce") {
+      if (badges.indexOf("express") >= 0 || r.tempsActif <= 15) return 2.2;
+      if (r.tempsActif <= 20) return 1;
+      return 0;
+    }
+    if (mood === "reconfort") {
+      const univ = ["Terroir & Europe revisités", "Amérique latine & soleil"];
+      if (univ.indexOf(r.univers) >= 0 || (r.macros && r.macros.kcal >= 560)) return 2;
+      const txt = ((r.batchTip || "") + " " + (r.nom || ""));
+      if (/mijot|four|gratin/i.test(txt)) return 1;
+      return 0;
+    }
+    if (mood === "leger") {
+      const univ = ["Océan — poissons & fruits de mer", "Veggie protéiné & céréales du monde"];
+      if ((r.macros && r.macros.kcal <= 480) || univ.indexOf(r.univers) >= 0) return 2;
+      if (badges.indexOf("digestion-facile") >= 0) return 1;
+      return 0;
+    }
+    return 0;
+  } catch (e) { return 0; }
+}
+/* modale « L'humeur du soir ? » — réutilise #modal/#modal-back, garde de fond,
+   Échap = « Peu importe » (cf. _modalEscHandler près de closeModal) */
+let _modalEscHandler = null;
+function openMoodModal(cb) {
+  const mb = $("#modal-back"), m = $("#modal");
+  mb.dataset.garde = "1";
+  m.innerHTML = `<div class="modal-body fp">
+    <h3>L'humeur du soir ?</h3>
+    <div class="accroche">Un seul tap — le jeu s'adapte à votre soirée.</div>
+    <div class="fp-choices" id="mood-choices">
+      ${MOOD_OPTIONS.map(o => `<button class="btn btn-ghost btn-block" style="min-height:52px" data-mood="${o.v}">${o.emoji} ${esc(o.lbl)}</button>`).join("")}
+    </div>
+  </div>`;
+  _modalEscHandler = () => { closeModal(); cb("peuimporte"); };
+  m.querySelectorAll("[data-mood]").forEach(b => b.addEventListener("click", () => {
+    const mood = b.dataset.mood;
+    _modalEscHandler = null; closeModal(); cb(mood);
+  }));
+  mb.classList.add("open"); m.scrollTop = 0; m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
+}
+/* ---------- Kudos d'après-repas (V1 uniquement) ---------- */
+function kudosOf(id) { return S.kudos[id] || null; }
+function kudosBoost(id) {
+  const k = S.kudos[id];
+  if (!k) return 0;
+  if (k.moi === "refaire" || k.autre === "refaire") return 1.4;
+  if (k.moi === "miam" || k.autre === "miam") return 0.6;
+  return 0;
+}
+function trimKudos() {
+  const keys = Object.keys(S.kudos);
+  if (keys.length <= 60) return;
+  keys.sort((a, b) => (S.kudos[a].t || "").localeCompare(S.kudos[b].t || ""));
+  keys.slice(0, keys.length - 60).forEach(k => delete S.kudos[k]);
+}
+function toggleKudo(recipeId, val) {
+  const cur = S.kudos[recipeId] || {};
+  const today = ymd(new Date());
+  if (cur.moi === val) {
+    delete cur.moi;
+    if (!cur.autre) delete S.kudos[recipeId]; else { cur.t = today; S.kudos[recipeId] = cur; }
+    rsync.kudos(recipeId, null);
+  } else {
+    cur.moi = val; cur.t = today;
+    S.kudos[recipeId] = cur;
+    rsync.kudos(recipeId, val);
+  }
+  trimKudos(); save.kudos(); render();
+}
+function fmtKudosDate(t) {
+  const d = new Date(String(t) + "T12:00:00");
+  if (isNaN(d.getTime())) return t || "";
+  return d.getDate() + " " + MOIS[d.getMonth()];
+}
+/* ---------- Blend du couple (V1 uniquement) — accord chiffré à la validation à distance ---------- */
+/* calcule le blend à partir des votes bruts (ses.votes.p1/p2) et des états de phase (liked+chosenBy) */
+function computeBlend(ses, states) {
+  const v1 = (ses && ses.votes && ses.votes.p1) || {};
+  const v2 = (ses && ses.votes && ses.votes.p2) || {};
+  const likesP1 = Object.keys(v1).filter(k => k !== "_");
+  const likesP2 = Object.keys(v2).filter(k => k !== "_");
+  const set2 = new Set(likesP2);
+  const inter = likesP1.filter(id => set2.has(id)).length;
+  const union = new Set(likesP1.concat(likesP2)).size;
+  const aff = Math.round(100 * inter / Math.max(1, union));
+  let matchs = 0, infP1 = 0, infP2 = 0;
+  ["diner", "petitdej", "collation"].forEach(cat => {
+    const st = states[cat];
+    if (!st) return;
+    (st.liked || []).forEach(id => {
+      const cb = st.chosenBy[id];
+      if (cb === "match") matchs++;
+      else if (cb === "p1" || cb === "super-p1") infP1++;
+      else if (cb === "p2" || cb === "super-p2") infP2++;
+    });
+  });
+  return {
+    aff, matchs, infP1, infP2,
+    noms: {
+      p1: (S.rnames && S.rnames.p1 && S.rnames.p1.nom) || "Joueur 1",
+      p2: (S.rnames && S.rnames.p2 && S.rnames.p2.nom) || "Joueur 2"
+    }
+  };
+}
+/* historique local du blend — append une seule fois par semaine validée (dédoublonné par date `creee`) */
+function maybeCountBlend(week) {
+  if (!week || !week.blend) return;
+  const hist = store.get("bp_blend", []);
+  if (hist.length && hist[0].d === week.creee) return;
+  hist.unshift({ d: week.creee, aff: week.blend.aff, matchs: week.blend.matchs });
+  store.set("bp_blend", hist.slice(0, 10));
+}
+/* ---------- Tour du monde du foyer (V1 uniquement) — carnet des univers goûtés à deux ---------- */
+function atlasAdd(ids) {
+  (ids || []).forEach(id => {
+    const r = byId[id]; if (!r) return;
+    S.atlas[r.univers] = (S.atlas[r.univers] || 0) + 1;
+  });
+  save.atlas();
+}
+const ATLAS_REGIONS = {
+  levant: { univers: ["Méditerranée & Levant", "Levant une-plaque — esprit Simple", "Encas du Levant — esprit Simple", "Matins du Levant — esprit Simple"], main: "Méditerranée & Levant", emoji: "🫒", label: "Levant" },
+  asie: { univers: ["Asie douce"], main: "Asie douce", emoji: "🍜", label: "Asie" },
+  latam: { univers: ["Amérique latine & soleil"], main: "Amérique latine & soleil", emoji: "🌮", label: "Am. latine" },
+  europe: { univers: ["Terroir & Europe revisités"], main: "Terroir & Europe revisités", emoji: "🥕", label: "Europe" },
+  ocean: { univers: ["Océan — poissons & fruits de mer"], main: "Océan — poissons & fruits de mer", emoji: "🐟", label: "Océan" }
+};
+const ATLAS_AUTRES = [
+  { univers: ["Veggie protéiné & céréales du monde"], label: "veggie" },
+  { univers: ["Express — 5 minutes chrono", "Express — 10 minutes chrono"], label: "express" },
+  { univers: ["Petits-déj sucrés protéinés", "Petits-déj salés & du monde"], label: "petit-déj" },
+  { univers: ["Collations sucrées sportives", "Collations salées & récupération"], label: "collation" }
+];
+function atlasRegionTotals() {
+  const totals = {};
+  Object.keys(ATLAS_REGIONS).forEach(key => {
+    totals[key] = ATLAS_REGIONS[key].univers.reduce((s, u) => s + (S.atlas[u] || 0), 0);
+  });
+  return totals;
+}
+function atlasFillOpacity(n) {
+  if (n >= 15) return 0.70;
+  if (n >= 5) return 0.45;
+  if (n >= 1) return 0.22;
+  return 0;
+}
+/* first-load unique : back-remplir bp_atlas depuis S.week + S.hist existants (best-effort, dédoublonné) */
+function initAtlasOnce() {
+  if (store.get("bp_atlas_init", 0)) return;
+  store.set("bp_atlas_init", 1);
+  if (Object.keys(S.atlas).length) return;
+  const ids = new Set();
+  if (S.week) {
+    (S.week.jours || []).forEach(d => { if (d.dinerId) ids.add(d.dinerId); });
+    (S.week.petitsDejs || []).forEach(id => ids.add(id));
+    (S.week.collations || []).forEach(id => ids.add(id));
+  }
+  (S.hist || []).forEach(arr => (arr || []).forEach(id => ids.add(id)));
+  if (ids.size) atlasAdd(Array.from(ids));
+}
+function buildQueue(cat, target, mood) {
   const recent = recentIds();
   const pool = RECETTES.filter(r => r.categorie === cat);
   const scored = pool.map(r => ({
     r,
     // r.micro (V1 uniquement) : alignement avec le rapport microbiote — remonte doucement
     // les recettes favorables, sans jamais exclure les autres
-    s: (isFav(r.id) ? 2.2 : 0) + (recent.has(r.id) ? -3 : 0) + (r.micro || 0) * 0.45 + Math.random() * 2
+    s: (isFav(r.id) ? 2.2 : 0) + (recent.has(r.id) ? -3 : 0) + (r.micro || 0) * 0.45
+      + moodBoost(r, mood) + kudosBoost(r.id) + Math.random() * 2
   }));
   scored.sort((a, b) => b.s - a.s);
   return scored.slice(0, Math.min(pool.length, target * 3 + 6)).map(x => x.r.id);
 }
-function startSession(t, mode, names) {
+function startSession(t, mode, names, mood) {
   S.session = {
     mode: mode || "ensemble",
     names: names || null,
+    mood: mood || null, // V1 uniquement — météo d'appétit
     targets: { diner: t.diner, petitdej: t.petitdej, collation: t.collation },
     phase: 0,
     liked: { diner: [], petitdej: [], collation: [] },
     chosenBy: {},
     queues: {
-      diner: buildQueue("diner", t.diner),
-      petitdej: buildQueue("petitdej", t.petitdej),
-      collation: buildQueue("collation", t.collation)
+      diner: buildQueue("diner", t.diner, mood),
+      petitdej: buildQueue("petitdej", t.petitdej, mood),
+      collation: buildQueue("collation", t.collation, mood)
     },
     idx: 0,
     finished: false,
@@ -1513,11 +1720,14 @@ function renderDeck(page) {
 
   const dots = Array.from({ length: target }, (_, i) => `<span class="${i < liked.length ? "on" : ""}"></span>`).join("");
   const top3 = remaining.slice(0, 3).map(id => byId[id]).filter(Boolean);
+  // rappel discret du mood choisi (V1 uniquement) — émoji seul, jamais en Facile
+  const moodChip = (!(typeof SIMPLE !== "undefined" && SIMPLE) && ses.mood && ses.mood !== "peuimporte")
+    ? `<span class="chip" title="${esc(moodLabel(ses.mood))}" style="margin-left:6px;padding:4px 9px" id="mood-chip">${moodEmoji(ses.mood)}</span>` : "";
   const head = duo
     ? `<div class="phase-lbl">${esc(ses.names[ses.current])} · ${esc(ph.titre)}</div>
-       <div class="count">${liked.length}/${target}</div>`
+       <div class="count">${liked.length}/${target}${moodChip}</div>`
     : `<div class="phase-lbl">${esc(ph.titre)}${ph.note ? `<small class="phase-note">${esc(ph.note)}</small>` : ""}</div>
-       <div class="count">${liked.length}/${target}</div>`;
+       <div class="count">${liked.length}/${target}${moodChip}</div>`;
 
   const vedette = top3[0];
   page.classList.add("deck-mode");
@@ -1868,11 +2078,105 @@ function validateWeek() {
   S.checked = {}; S.session = null;
   save.week(); save.hist(); save.checked(); save.session();
   rsync.week(); rsync.hist(); rsync.checkedAll();
+  // Tour du monde (V1) : mode ensemble → pas de blend (week.blend reste absent), l'atlas se remplit toujours
+  atlasAdd(used); rsync.atlas();
   S.tab = "semaine"; render(); burstConfetti();
   toast("Menu validé — la liste de courses est prête", 2600);
 }
 
 /* ================= SEMAINE ================= */
+/* ---------- Blend du couple (V1 uniquement) — carte affinité + historique ---------- */
+function blendRingSVG(aff) {
+  const r = 30, cx = 38, cy = 38, c = 2 * Math.PI * r;
+  const off = c * (1 - Math.max(0, Math.min(100, aff)) / 100);
+  return `<svg viewBox="0 0 76 76" width="76" height="76" aria-hidden="true">
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--creme2)" stroke-width="8"/>
+    <circle cx="${cx}" cy="${cy}" r="${r}" fill="none" stroke="var(--prune)" stroke-width="8" stroke-linecap="round"
+      stroke-dasharray="${c.toFixed(2)}" stroke-dashoffset="${off.toFixed(2)}" transform="rotate(-90 ${cx} ${cy})"/>
+    <text x="${cx}" y="${cy + 6}" text-anchor="middle" font-family="var(--font-display)" font-weight="700" font-size="19" fill="var(--prune)">${aff}%</text>
+  </svg>`;
+}
+function blendHistoryHTML() {
+  const hist = store.get("bp_blend", []);
+  if (!hist.length) return "";
+  const chrono = hist.slice(0, 8).slice().reverse(); // du plus ancien au plus récent
+  const today = hist[0];
+  const bars = chrono.map(h => {
+    const isToday = today && h.d === today.d;
+    const hpx = Math.max(4, Math.round(h.aff / 100 * 34));
+    return `<span class="bb-bar${isToday ? " on" : ""}" style="height:${hpx}px" title="${esc(h.d)} · ${h.aff}%"></span>`;
+  }).join("");
+  return `<div class="blend-hist"><div class="bb-bars">${bars}</div><div class="caps bb-legend">vos dernières semaines</div></div>`;
+}
+function blendCardHTML(blend) {
+  const p1 = (blend.noms && blend.noms.p1) || "Joueur 1";
+  const p2 = (blend.noms && blend.noms.p2) || "Joueur 2";
+  let phrase;
+  if (blend.infP1 > blend.infP2) phrase = `Le menu penche côté ${esc(p1)} (${blend.infP1} plats)`;
+  else if (blend.infP2 > blend.infP1) phrase = `Le menu penche côté ${esc(p2)} (${blend.infP2} plats)`;
+  else phrase = "Un menu parfaitement partagé";
+  return `<div class="budget-card blend-card">
+    <div class="bc-head"><span class="caps">Votre blend de la semaine</span></div>
+    <div class="blend-row">
+      <div class="blend-ring">${blendRingSVG(blend.aff)}</div>
+      <div class="blend-info">
+        <div class="blend-matchs">${blend.matchs} match${blend.matchs > 1 ? "s" : ""} cette semaine</div>
+        <div class="blend-phrase">${phrase}</div>
+      </div>
+    </div>
+    ${blendHistoryHTML()}
+  </div>`;
+}
+/* ---------- Tour du monde du foyer (V1 uniquement) — carte stylisée + légende ---------- */
+const ATLAS_PATHS = {
+  europe: "M55,30 C45,22 62,10 82,14 C100,17 106,32 98,44 C90,56 68,58 56,48 C46,40 47,36 55,30 Z",
+  levant: "M118,55 C110,44 128,34 148,38 C164,41 170,56 160,68 C150,80 128,80 118,68 C110,59 111,60 118,55 Z",
+  asie: "M190,35 C178,18 218,4 252,14 C284,23 292,50 272,66 C252,82 210,80 192,64 C176,50 180,44 190,35 Z",
+  latam: "M50,80 C40,72 56,62 68,68 C78,73 80,90 74,108 C69,126 58,150 46,148 C34,146 32,120 38,102 C42,90 44,86 50,80 Z",
+  ocean: "M250,120 C244,112 260,104 278,108 C296,112 304,128 296,140 C288,152 262,154 250,144 C240,136 242,128 250,120 Z"
+};
+function worldSVGHTML(totals) {
+  const region = key => {
+    const n = totals[key] || 0;
+    const op = atlasFillOpacity(n);
+    const fg = univColor(ATLAS_REGIONS[key].main).fg;
+    return `<path data-region="${key}" d="${ATLAS_PATHS[key]}" fill="${fg}" fill-opacity="${op}" stroke="var(--prune-l)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"/>`;
+  };
+  const waves = `<g stroke="var(--prune-l)" stroke-width="1.5" stroke-linecap="round" fill="none" opacity=".55">
+    <path d="M244,131 q8,-7 16,0 q8,7 16,0"/>
+    <path d="M244,141 q8,-7 16,0 q8,7 16,0"/>
+  </g>`;
+  return `<svg class="atlas-map" viewBox="0 0 340 170" aria-hidden="true">
+    ${["europe", "levant", "asie", "latam", "ocean"].map(region).join("")}
+    ${waves}
+  </svg>`;
+}
+function atlasLegendHTML(totals) {
+  const chips = Object.keys(ATLAS_REGIONS).filter(k => totals[k] > 0).map(k => {
+    const rg = ATLAS_REGIONS[k];
+    return `<span class="chip atlas-chip">${rg.emoji} ${totals[k]} plat${totals[k] > 1 ? "s" : ""}</span>`;
+  }).join("");
+  return chips ? `<div class="atlas-legend">${chips}</div>` : "";
+}
+function atlasOtherHTML() {
+  const parts = ATLAS_AUTRES.map(b => {
+    const n = b.univers.reduce((s, u) => s + (S.atlas[u] || 0), 0);
+    return n > 0 ? { n, label: b.label } : null;
+  }).filter(Boolean);
+  if (!parts.length) return "";
+  const txt = parts.map(p => `${p.n} plat${p.n > 1 ? "s" : ""} ${p.label}`).join(", ");
+  return `<div class="atlas-autres sub">aussi : ${esc(txt)}</div>`;
+}
+function atlasCardHTML() {
+  const totals = atlasRegionTotals();
+  const anyFilled = Object.keys(totals).some(k => totals[k] > 0);
+  return `<div class="budget-card atlas-card">
+    <div class="bc-head"><span class="caps">Votre tour du monde</span></div>
+    ${worldSVGHTML(totals)}
+    ${anyFilled ? atlasLegendHTML(totals) : `<div class="bc-sub">Chaque menu validé colore votre carte.</div>`}
+    ${atlasOtherHTML()}
+  </div>`;
+}
 function renderSemaine() {
   const page = $("#semaine-page");
   if (!S.week) {
@@ -1907,12 +2211,15 @@ function renderSemaine() {
       </div>`;
     }
     const uc = univColor(r.univers);
+    // kudos d'après-repas (V1 uniquement) : uniquement sur la cellule d'aujourd'hui
+    const kudos = (isToday && !(typeof SIMPLE !== "undefined" && SIMPLE)) ? kudosRowHTML(r.id) : "";
     return `<div class="cell${isToday ? " today" : ""}" data-day="${i}" data-id="${r.id}" style="background:${univSoft(r.univers)};--uc:${uc.fg}">
       ${isToday ? '<span class="todaytag">AUJOURD\'HUI</span>' : ""}
       <span class="dnum">${dt.getDate()}</span><span class="dw">${JOURS_ABR[i]}</span>
       <span class="pastille" style="background:${mixWhite(uc.fg, .07)}">${pictoSVG(r, "picto")}</span>
       <div class="dish">${esc(r.nom)}</div>
       <div class="lun">→ déjeuner de ${JOURS_ABR[(i + 1) % 7].slice(0, 3).toLowerCase()}.</div>
+      ${kudos}
       <div class="cellfoot">${mov}<button class="swapb" data-swap="${i}" title="Remplacer">${SWAP_IC}</button></div>
     </div>`;
   }).join("");
@@ -1922,6 +2229,8 @@ function renderSemaine() {
     w.collations.slice(0, 2).map(id => byId[id])
   ).filter(Boolean).map(r => `<div class="rline" data-id="${r.id}"><span class="pastille" style="background:${mixWhite(univColor(r.univers).fg, .1)}">${pictoSVG(r, "picto")}</span><span>${esc(r.nom)}</span></div>`).join("");
 
+  const blendCard = (!(typeof SIMPLE !== "undefined" && SIMPLE) && w.blend) ? blendCardHTML(w.blend) : "";
+  const atlasCard = (typeof SIMPLE !== "undefined" && SIMPLE) ? "" : atlasCardHTML();
   page.innerHTML = `
   ${monoByFamily("bol", 0)}
   <div class="pad">
@@ -1930,6 +2239,7 @@ function renderSemaine() {
       <span class="caps">Semaine du ${lundi.getDate()} au ${dim.getDate()} · ${dim.getFullYear()}</span>
     </div>
     <div class="cut" style="margin:11px 0 0"></div>
+    ${blendCard}
     <div class="wall">
       ${cells}
       <div class="cell rotcell">
@@ -1937,6 +2247,7 @@ function renderSemaine() {
         ${rotLines || '<div class="lun" style="margin-top:12px">Aucune rotation</div>'}
       </div>
     </div>
+    ${atlasCard}
     <button class="btn btn-ghost btn-block mt20" id="new-week">Nouvelle pioche (nouvelle semaine)</button>
   </div>`;
 
@@ -1946,7 +2257,26 @@ function renderSemaine() {
   page.querySelectorAll("[data-pick]").forEach(b => b.addEventListener("click", () => openPicker(+b.dataset.pick)));
   page.querySelectorAll(".cell[data-id]").forEach(el => el.addEventListener("click", () => openModal(el.dataset.id)));
   page.querySelectorAll(".rline[data-id]").forEach(el => el.addEventListener("click", () => openModal(el.dataset.id)));
+  page.querySelectorAll("[data-kudo]").forEach(b => b.addEventListener("click", e => {
+    e.stopPropagation(); toggleKudo(b.dataset.kid, b.dataset.kudo);
+  }));
   $("#new-week").addEventListener("click", () => { S.session = null; save.session(); S.tab = "pioche"; render(); });
+}
+/* rangée kudos (V1 uniquement) : sous le plat de la cellule d'aujourd'hui */
+function kudosRowHTML(rid) {
+  const k = S.kudos[rid];
+  const mine = k && k.moi;
+  const autreNom = (remoteOn() && S.rnames && S.rnames[other(RC.me)] && S.rnames[other(RC.me)].nom) || "";
+  let partnerLine = "";
+  if (k && k.autre && autreNom) {
+    partnerLine = k.autre === "miam"
+      ? `<div class="kudos-partner">♥ ${esc(autreNom)} a adoré</div>`
+      : `<div class="kudos-partner">${esc(autreNom)} veut le refaire</div>`;
+  }
+  return `<div class="kudos-row">
+    <button class="kudos-btn${mine === "miam" ? " on" : ""}" data-kudo="miam" data-kid="${rid}">😋 Miam</button>
+    <button class="kudos-btn${mine === "refaire" ? " on" : ""}" data-kudo="refaire" data-kid="${rid}">🔁 À refaire</button>
+  </div>${partnerLine}`;
 }
 function moveDay(i, d) {
   const j = i + d, js = S.week.jours;
@@ -2489,6 +2819,13 @@ function openModal(id) {
     <div class="meta-row" style="justify-content:flex-start;margin-top:12px">
       ${(r.badges || []).map(chipHTML).join("")}
     </div>
+    ${(!(typeof SIMPLE !== "undefined" && SIMPLE) && (() => { const k = S.kudos[id]; return k && (k.moi || k.autre); })())
+      ? (() => {
+          const k = S.kudos[id]; const v = k.moi || k.autre;
+          const txt = v === "miam" ? `😋 Adoré le ${fmtKudosDate(k.t)}` : `🔁 À refaire — noté le ${fmtKudosDate(k.t)}`;
+          return `<div class="sub" style="margin-top:8px">${esc(txt)}</div>`;
+        })()
+      : ""}
     <div class="sub" style="font-size:${(typeof SIMPLE !== "undefined" && SIMPLE) ? 12 : 10}px;margin-top:10px">Macros par portion, estimations.</div>
     ${isFav(id) ? '<div class="mstamp">MIAM VALIDÉ</div>' : ""}
   </div>`;
@@ -2501,9 +2838,12 @@ function openModal(id) {
   m.setAttribute("tabindex", "-1"); m.focus({ preventScroll: true });
   m.scrollTop = 0;
 }
-function closeModal() { const mb = $("#modal-back"); delete mb.dataset.garde; mb.classList.remove("open"); }
+function closeModal() { const mb = $("#modal-back"); delete mb.dataset.garde; mb.classList.remove("open"); _modalEscHandler = null; }
 document.addEventListener("keydown", e => {
-  if (e.key === "Escape" && $("#modal-back").classList.contains("open")) closeModal();
+  if (e.key === "Escape" && $("#modal-back").classList.contains("open")) {
+    if (_modalEscHandler) { const f = _modalEscHandler; _modalEscHandler = null; f(); return; }
+    closeModal();
+  }
 });
 $("#modal-back").addEventListener("click", e => {
   if (e.target.id !== "modal-back") return;
@@ -2583,7 +2923,16 @@ const rsync = {
   mult(id, val) { if (remoteOn()) tracked(api.put("week/mult/" + id, val), { path: "week/mult/" + id, val }); },
   week() { if (remoteOn()) tracked(api.put("week", S.week), { path: "week", val: () => S.week }); },
   hist() { if (remoteOn()) tracked(api.put("hist", S.hist), { path: "hist", val: () => S.hist }); },
-  checkedAll() { if (remoteOn()) tracked(api.put("courses/checked", S.checked), { path: "courses/checked", val: () => S.checked }); }
+  checkedAll() { if (remoteOn()) tracked(api.put("courses/checked", S.checked), { path: "courses/checked", val: () => S.checked }); },
+  // V1 uniquement — kudos d'après-repas : kudos/<recipeId>/<RC.me> = { v, t }
+  kudos(id, val) {
+    if (!remoteOn()) return;
+    const path = "kudos/" + id + "/" + RC.me;
+    const v = val ? { v: val, t: ymd(new Date()) } : null;
+    tracked(api.put(path, v), { path, val: v });
+  },
+  // V1 uniquement — Tour du monde : atlas complet poussé à chaque validation, fusionné par max en lecture
+  atlas() { if (remoteOn()) tracked(api.put("atlas", S.atlas), { path: "atlas", val: () => S.atlas }); }
 };
 /* polling + application de l'état distant */
 let _pollTimer = null, _lastRoom = "", _dragging = false, _pollErrs = 0;
@@ -2627,7 +2976,10 @@ function applyRoom(room) {
   _lastRoom = j;
   S.favoris = Object.keys(room.favoris || {});
   store.set("bp_fav", S.favoris);
-  if (room.week !== undefined) { S.week = room.week || null; store.set("bp_week", S.week); }
+  if (room.week !== undefined) {
+    S.week = room.week || null; store.set("bp_week", S.week);
+    maybeCountBlend(S.week); // V1 uniquement — Blend : compte 1 fois par semaine appliquée, même sur le téléphone qui l'a validée
+  }
   if (room.hist) { S.hist = room.hist; store.set("bp_hist", S.hist); }
   const co = room.courses || {};
   S.checked = Object.assign({}, co.checked || {});
@@ -2635,6 +2987,28 @@ function applyRoom(room) {
   S.custom = co.custom || {}; store.set("bp_custom", S.custom);
   S.rsession = room.session || null;
   S.rnames = room.profil || {};
+  // V1 uniquement — kudos d'après-repas : fusion du foyer dans le store local (kudo de l'autre → "autre")
+  if (RC && RC.me) {
+    const meK = RC.me, autreK = other(RC.me);
+    const rk = room.kudos || {};
+    Object.keys(rk).forEach(rid => {
+      const entry = rk[rid] || {};
+      const mineR = entry[meK], theirsR = entry[autreK];
+      if (!mineR && !theirsR) return;
+      const cur = S.kudos[rid] || {};
+      if (mineR) { cur.moi = mineR.v; if (!cur.t || mineR.t > cur.t) cur.t = mineR.t; }
+      if (theirsR) { cur.autre = theirsR.v; if (!cur.t || theirsR.t > cur.t) cur.t = theirsR.t; }
+      else delete cur.autre;
+      S.kudos[rid] = cur;
+    });
+    trimKudos(); save.kudos();
+  }
+  // V1 uniquement — Tour du monde : fusion foyer/local par max(count) par univers
+  if (room.atlas) {
+    const merged = Object.assign({}, S.atlas);
+    Object.keys(room.atlas).forEach(u => { merged[u] = Math.max(merged[u] || 0, room.atlas[u] || 0); });
+    S.atlas = merged; save.atlas();
+  }
   if (S.rsession && !S.rsession.validated && !S.session) S.pendingMode = "remote";
   if (!userBusy()) render(); else updateCoursesBadge();
 }
@@ -2761,8 +3135,19 @@ function renderRemotePioche(page) {
   attachRowEvents(page);
   page.querySelectorAll("[data-swipe]").forEach(b => b.addEventListener("click", () => {
     const cat = b.dataset.swipe, st = states[cat];
-    S.rswipe = { sessionId: ses.id, cat, round: st.round, deck: st.deck, idx: 0, likes: {} };
-    store.set("bp_rswipe", S.rswipe); render();
+    const create = mood => {
+      // même deck (mêmes ids, contrainte n°1) — seul l'ordre local change, tri stable par moodBoost
+      let deck = st.deck;
+      if (mood && mood !== "peuimporte") {
+        deck = deck.map((id, i) => ({ id, i, b: moodBoost(byId[id], mood) }))
+          .sort((a, b2) => (b2.b - a.b) || (a.i - b2.i))
+          .map(x => x.id);
+      }
+      S.rswipe = { sessionId: ses.id, cat, round: st.round, deck, idx: 0, likes: {}, mood: mood || null };
+      store.set("bp_rswipe", S.rswipe); render();
+    };
+    if (typeof SIMPLE !== "undefined" && SIMPLE) { create(null); return; }
+    openMoodModal(create);
   }));
   $("#abort-remote").addEventListener("click", async e => {
     const b = e.currentTarget;
@@ -2778,6 +3163,9 @@ function renderRemoteDeck(page) {
   const top3 = remaining.slice(0, 3).map(id => byId[id]).filter(Boolean);
   const vedette = top3[0];
   page.classList.add("deck-mode");
+  // rappel discret du mood choisi (V1 uniquement) — émoji seul, jamais en Facile
+  const moodChip = (!(typeof SIMPLE !== "undefined" && SIMPLE) && rs.mood && rs.mood !== "peuimporte")
+    ? `<span class="chip" title="${esc(moodLabel(rs.mood))}" style="margin-left:6px;padding:4px 9px" id="mood-chip">${moodEmoji(rs.mood)}</span>` : "";
   page.innerHTML = `
   ${vedette ? monoSVG(vedette) : ""}
   ${vtitleHTML(vedette)}
@@ -2787,7 +3175,7 @@ function renderRemoteDeck(page) {
       ${(rs.undo && rs.idx > 0) ? `<button class="deck-back" id="deck-undo" title="Reprendre la dernière carte" aria-label="Reprendre la dernière carte">${UNDO_IC}</button>` : ""}
       <div class="dh-mid">
         <div class="phase-lbl">${esc(ph.titre)} · manche ${rs.round}</div>
-        <div class="count">${rs.idx + 1}/${rs.deck.length}</div>
+        <div class="count">${rs.idx + 1}/${rs.deck.length}${moodChip}</div>
       </div>
     </div>
     <div class="deck" id="deck">${top3.map((r, i) => cardHTML(r, i)).reverse().join("")}</div>
@@ -2877,6 +3265,9 @@ function renderRemoteRecap(page, states) {
       collations: states.collation.liked.slice(),
       mult
     };
+    // Blend du couple (V1) : calculé ici, uniquement pour un menu validé à distance
+    const blend = computeBlend(ses, states);
+    if (blend) week.blend = blend;
     const used = [].concat(states.diner.liked, states.petitdej.liked, states.collation.liked);
     const hist = [used].concat(S.hist || []).slice(0, 3);
     try {
@@ -2886,6 +3277,8 @@ function renderRemoteRecap(page, states) {
       await api.put("session/validated", true);
       S.week = week; S.hist = hist; S.checked = {};
       save.week(); save.hist(); save.checked();
+      maybeCountBlend(S.week);
+      atlasAdd(used); rsync.atlas();
       if (S.rsession) S.rsession.validated = true;
       _lastRoom = ""; S.tab = "semaine"; render(); burstConfetti();
       toast("Menu du foyer validé — synchronisé sur les deux téléphones", 2800);
@@ -3156,6 +3549,7 @@ $("#btn-settings").addEventListener("click", () => (typeof SIMPLE !== "undefined
 /* ---------- Démarrage ---------- */
 S.rswipe = store.get("bp_rswipe", null);
 S.rsession = null; S.rnames = {};
+initAtlasOnce(); // V1 uniquement — Tour du monde : back-remplissage unique depuis l'historique local
 document.addEventListener("visibilitychange", () => { if (!document.hidden) pollRoom(); });
 startPolling();
 render();
