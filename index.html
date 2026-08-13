@@ -116,7 +116,7 @@ body.simple nav button[data-tab="favoris"],body.simple nav button[data-tab="rece
 body.simple{--nav-h:calc(66px + 16px + env(safe-area-inset-bottom))}
 body.simple .home-serre,body.simple .cout-chip{display:none}
 body.simple .home-mode button{height:70px;font-size:13px}
-body.simple .home-q{font-size:33px}
+body.simple .home-q{font-size:33px;min-height:114px}
 body.simple .home-foot{font-size:13px;color:#5A4A50}
 body.simple .home-tile .ht-k{font-size:12.5px;opacity:1}
 body.simple .home-tile .ht-s{font-size:12px;min-height:0;opacity:1}
@@ -178,7 +178,7 @@ body.simple .r-row .heart,body.simple .fav-tag,body.simple .modal-fav,body.simpl
 /* texte plus grand (bascule Aa) : on grossit le TEXTE, jamais la structure — aucun zoom, aucune casse */
 body.simple.xl .sub{font-size:17px}
 body.simple.xl .accroche{font-size:17px;line-height:1.55}
-body.simple.xl .home-foot{font-size:15px}
+body.simple.xl .home-foot{font-size:14px;min-height:84px}
 body.simple.xl h2.section{font-size:29px}
 body.simple.xl .modal-body h3{font-size:27px;max-width:none}
 body.simple.xl .fp h3{font-size:28px}
@@ -354,27 +354,39 @@ body.simple.xl .deck-head .phase-lbl{font-size:17px}
   border:1.5px solid rgba(125,68,83,.22);border-radius:999px;background:var(--blanc);color:var(--prune);
   font-family:var(--font-body);font-weight:700;font-size:13.5px;cursor:pointer;animation:home-in .5s ease .6s both}
 .duo-chip svg{width:16px;height:16px;flex-shrink:0}
-body.simple .home-foot{display:block;font-size:14px}
+body.simple .home-foot{display:block;font-size:14px;min-height:42px}
 body.simple .home-mid{min-height:104px;margin:14px 0 10px}
+body.simple.xl .home-mid{min-height:86px}
 body.simple .home-total b{font-size:50px}
 body.simple .home-total span{margin-top:9px}
-@media (max-height:740px){
+@media (max-height:880px){
+  /* palier moyen (zones sûres iOS des grands téléphones) : on trime le décor en douceur */
+  body.simple .home-q{font-size:27px;min-height:96px}
+  body.simple .home-date{font-size:12px}
+  body.simple .home-mode button{height:58px;font-size:12.5px}
+  body.simple .home-tile .ht-v{font-size:40px;margin-top:6px}
+  body.simple .home-tiles{margin-top:14px}
+  body.simple .home-foot{font-size:13px;min-height:39px}
+  body.simple .home-mid{min-height:76px;margin:10px 0 8px}
+  body.simple.xl .home-mid{min-height:58px}
+  body.simple .home-total b{font-size:40px}
+  body.simple .home-total span{font-size:12px;margin-top:5px}
+}
+@media (max-height:770px){
   /* petits écrans : on compacte le décor, jamais les cibles (≥44px) ni les textes (≥12px) */
   body.simple .home-date{display:none}
-  body.simple .home-q{font-size:20px}
+  body.simple .home-q{font-size:20px;min-height:70px}
   body.simple .home-mode button{height:50px;font-size:12px}
   body.simple .home-tile{padding:9px 8px}
   body.simple .home-tile .stepper button{width:44px;height:44px;font-size:19px}
   body.simple .home-tile .ht-v{font-size:26px;margin-top:2px}
   body.simple .home-tile .ht-s{font-size:12px}
-  body.simple .home-total b{font-size:26px}
-  body.simple .home-total span{font-size:12px;margin-top:2px}
   body.simple .home-tiles{margin-top:8px}
-  body.simple .home-mid{min-height:20px}
-  body.simple .home-foot{font-size:12px;margin-top:6px}
+  body.simple .home-foot{font-size:12px;margin-top:6px;min-height:36px}
   body.simple .home-mid{min-height:48px;margin:8px 0 6px}
+  body.simple.xl .home-mid{min-height:30px}
   body.simple .home-total b{font-size:30px}
-  body.simple .home-total span{margin-top:4px}
+  body.simple .home-total span{font-size:12px;margin-top:4px}
   body.simple .home-cta.btn{padding:11px 22px;font-size:15px;min-height:44px}
 }
 @media (max-height:740px){
