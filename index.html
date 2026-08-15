@@ -538,6 +538,9 @@ body.simple .phase-note{font-size:12px}
 .stamp.super{left:50%;top:38%;transform:translateX(-50%) rotate(-6deg);color:#B8791A;border-color:var(--abricot)}
 .hint{text-align:center;padding:10px 0 6px;z-index:6}
 .hint b{color:var(--prune)}
+/* Arrêt anticipé de la pioche (V1 uniquement) — discret, toujours cliquable, jamais sous
+   la nav ni les boutons de swipe : dans le flux normal, entre le hint et .deck-actions. */
+.stop-phase-btn{display:block;margin:0 auto 8px;min-height:38px;box-shadow:none;border:1.5px solid rgba(125,68,83,.22);color:var(--prune-d)}
 .deck-actions{display:flex;align-items:center;justify-content:center;gap:13px;padding:0 0 calc(var(--nav-h) + 12px);z-index:6}
 .act-btn{
   width:48px;height:48px;border-radius:15px;border:none;cursor:pointer;
@@ -1755,6 +1758,9 @@ function renderDeck(page) {
        <div class="count">${liked.length}/${target}${moodChipHTML(ses.mood)}</div>`;
 
   const vedette = top3[0];
+  // Arrêt anticipé de la pioche (V1 uniquement) — mode ensemble : on peut s'arrêter dès
+  // qu'au moins un plat est retenu dans la catégorie en cours et valider avec ceux-là.
+  const canStop = !duo && !(typeof SIMPLE !== "undefined" && SIMPLE) && liked.length >= 1;
   page.classList.add("deck-mode");
   page.innerHTML = `
   ${vedette ? monoSVG(vedette) : ""}
@@ -1770,6 +1776,7 @@ function renderDeck(page) {
       ${top3.map((r, i) => cardHTML(r, i)).reverse().join("")}
     </div>
     <div class="hint"><span class="caps">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "Vous pouvez aussi faire <b>glisser</b> la carte" : "← passe · <b>glisse la carte</b> · j'adore →"}</span></div>
+    ${canStop ? `<button class="btn btn-ghost btn-sm stop-phase-btn" id="stop-phase">Terminer avec ${liked.length === 1 ? "ce plat" : "ces " + liked.length + " plats"}</button>` : ""}
     <div class="deck-actions">
       <button class="act-btn nope" id="btn-nope" title="Pas cette semaine"><svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round'><path d='M6.5 6 L18 18.2 M17.8 6.2 L6.2 17.8'/></svg><span class="alab">Non merci</span></button>
       <button class="act-btn info" id="btn-info" title="Voir la recette"><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><path d='M2.5 12 q9.5 -10.5 19 0 q-9.5 10.5 -19 0 Z'/><circle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/></svg><span class="alab">Voir</span></button>
@@ -1789,6 +1796,12 @@ function renderDeck(page) {
   });
   const du = $("#deck-undo");
   if (du) du.addEventListener("click", undoLocalSwipe);
+  const sp = $("#stop-phase");
+  if (sp) sp.addEventListener("click", () => {
+    const n = liked.length;
+    nextPhase();
+    toast("Catégorie terminée avec " + n + (n > 1 ? " plats" : " plat") + " — au menu", 2400);
+  });
   if (topCard) attachDrag(topCard);
 }
 function superAvailable() {
@@ -2169,6 +2182,52 @@ function validateWeek() {
   toast("Menu validé — la liste de courses est prête", 2600);
 }
 
+/* ---------- Récupération (V1 uniquement) — reconstruit une semaine à partir de
+   S.hist[0] (les ids de la dernière semaine validée, jamais écrasés par un null distant).
+   Toujours résolu via byId (RECETTES complet) et jamais recettesVisibles() : une recette
+   de la Table sensible doit rester récupérable même si l'option est décochée. ---------- */
+function semaineRecuperable() {
+  const ids = S.hist && S.hist[0];
+  return !!(ids && ids.length && ids.some(id => byId[id]));
+}
+function recoverWeekFromHist() {
+  const ids = (S.hist && S.hist[0]) || [];
+  const diners = ids.filter(id => byId[id] && byId[id].categorie === "diner");
+  const petitsDejs = ids.filter(id => byId[id] && byId[id].categorie === "petitdej");
+  const collations = ids.filter(id => byId[id] && byId[id].categorie === "collation");
+  if (!diners.length && !petitsDejs.length && !collations.length) {
+    toast("Rien à récupérer — aucun historique valide"); return;
+  }
+  const mult = {};
+  diners.forEach(id => mult[id] = 1);
+  petitsDejs.forEach(id => mult[id] = 2);
+  collations.forEach(id => mult[id] = 1);
+  S.week = {
+    creee: ymd(weekMonday()),
+    jours: JOURS.map((j, i) => ({ jour: j, dinerId: diners[i] || null })),
+    petitsDejs, collations, mult
+  };
+  S.checked = {};
+  save.week(); save.checked();
+  if (remoteOn()) { rsync.week(); rsync.checkedAll(); }
+  S.tab = "semaine"; render();
+  toast("Votre menu est de retour — la liste de courses aussi", 3200);
+}
+/* archive la semaine COURANTE (si elle existe) en tête de S.hist, avant toute suppression
+   volontaire — c'est ce qui rend « Nouvelle pioche » sans risque : on peut toujours
+   revenir en arrière via « Récupérer notre dernier menu ». */
+function archiveWeekToHist() {
+  if (!S.week) return;
+  const used = [].concat(
+    (S.week.jours || []).map(d => d.dinerId).filter(Boolean),
+    S.week.petitsDejs || [],
+    S.week.collations || []
+  );
+  if (!used.length) return;
+  S.hist.unshift(used); S.hist = S.hist.slice(0, 3);
+  save.hist(); if (remoteOn()) rsync.hist();
+}
+
 /* ================= SEMAINE ================= */
 /* ---------- Blend du couple (V1 uniquement) — carte affinité + historique ---------- */
 function blendRingSVG(aff) {
@@ -2215,11 +2274,17 @@ function blendCardHTML(blend) {
 function renderSemaine() {
   const page = $("#semaine-page");
   if (!S.week) {
+    // Récupération (V1 uniquement) : si un menu validé existe dans l'historique, on
+    // propose d'abord de le restaurer — bien plus rassurant qu'une pioche à refaire.
+    const peutRecuperer = !(typeof SIMPLE !== "undefined" && SIMPLE) && semaineRecuperable();
     page.innerHTML = `<div class="empty-state">
       <h2 class="section">Pas encore de menu</h2>
       <p>Lancez une pioche à deux dans l'onglet Pioche pour composer la semaine.</p>
-      <button class="btn btn-primary" id="goto-pioche">Aller piocher</button></div>`;
+      ${peutRecuperer ? '<button class="btn btn-primary" id="recover-week">Récupérer notre dernier menu</button>' : ""}
+      <button class="btn ${peutRecuperer ? "btn-ghost" : "btn-primary"}" id="goto-pioche">Aller piocher</button></div>`;
     $("#goto-pioche").addEventListener("click", () => { S.tab = "pioche"; render(); });
+    const rec = $("#recover-week");
+    if (rec) rec.addEventListener("click", recoverWeekFromHist);
     return;
   }
   const w = S.week;
@@ -2293,7 +2358,21 @@ function renderSemaine() {
   page.querySelectorAll("[data-kudo]").forEach(b => b.addEventListener("click", e => {
     e.stopPropagation(); toggleKudo(b.dataset.kid, b.dataset.kudo);
   }));
-  $("#new-week").addEventListener("click", () => { S.session = null; save.session(); S.tab = "pioche"; render(); });
+  $("#new-week").addEventListener("click", e => {
+    const b = e.currentTarget;
+    if (!b.dataset.armed) {
+      b.dataset.armed = "1";
+      b.textContent = "Cela remplacera le menu actuel — appuyez encore pour confirmer";
+      b.style.color = "var(--tomate)";
+      setTimeout(() => { b.dataset.armed = ""; b.textContent = "Nouvelle pioche (nouvelle semaine)"; b.style.color = ""; }, 3500);
+      return;
+    }
+    // on archive avant d'effacer : la semaine reste récupérable (bouton de la tâche 1)
+    archiveWeekToHist();
+    S.session = null; save.session();
+    S.week = null; save.week(); if (remoteOn()) rsync.week();
+    S.tab = "pioche"; render();
+  });
 }
 /* rangée kudos (V1 uniquement) : sous le plat de la cellule d'aujourd'hui */
 function kudosRowHTML(rid) {
@@ -3028,15 +3107,39 @@ async function pollRoom() {
       toast("La synchronisation ne répond plus — vérifiez votre connexion internet", 4200, "err");
   }
 }
+/* une semaine n'est "exploitable" que si elle contient réellement au moins un dîner —
+   c'est le seul signal fiable qu'elle a été validée par un humain (jamais un objet
+   nul/vide accidentel). Utilisé par applyRoom pour ne jamais laisser une valeur distante
+   creuse écraser une semaine locale validée. */
+function weekUtilisable(w) {
+  return !!(w && Array.isArray(w.jours) && w.jours.some(d => d && d.dinerId));
+}
 function applyRoom(room) {
   const j = JSON.stringify(room);
   if (j === _lastRoom) return;
   _lastRoom = j;
   S.favoris = Object.keys(room.favoris || {});
   store.set("bp_fav", S.favoris);
-  if (room.week !== undefined) {
-    S.week = room.week || null; store.set("bp_week", S.week);
+  // Remarque Firebase : un PUT "week"=null SUPPRIME la clé — au prochain GET racine,
+  // room.week est alors ABSENTE (undefined), pas littéralement `null`. On traite donc
+  // volontairement l'absence de clé exactement comme une valeur nulle/vide : dans les deux
+  // cas, c'est une "absence distante" et la règle centrale s'applique pareil (pas de
+  // `if (room.week !== undefined)` qui court-circuiterait la réparation).
+  if (weekUtilisable(room.week)) {
+    // semaine distante exploitable (au moins un dîner) → on l'adopte normalement
+    S.week = room.week; store.set("bp_week", S.week);
     maybeCountBlend(S.week); // V1 uniquement — Blend : compte 1 fois par semaine appliquée, même sur le téléphone qui l'a validée
+  } else if (weekUtilisable(S.week)) {
+    // règle centrale anti-perte : une semaine distante nulle, vide ou absente ne peut
+    // JAMAIS effacer une semaine locale validée — on la protège et, si le foyer est relié,
+    // on la republie pour réparer la room (cas d'un autre téléphone ayant republié un null
+    // par erreur, ex. file de rattrapage rejouée trop tard).
+    if (remoteOn()) rsync.week();
+  } else if (room.week !== undefined) {
+    // les deux sont vides/nulles, mais la clé a explicitement été transmise : rien à
+    // perdre, on aligne pour rester cohérent (évite d'écrire à chaque poll pour rien
+    // quand la clé est simplement absente).
+    S.week = room.week || null; store.set("bp_week", S.week);
   }
   if (room.hist) { S.hist = room.hist; store.set("bp_hist", S.hist); }
   const co = room.courses || {};
@@ -3158,6 +3261,22 @@ function remotePhaseState(ses, cat) {
     }
   }
 }
+/* Arrêt anticipé de la pioche à distance (V1 uniquement) — combien de plats seraient
+   réellement "au menu" pour cette catégorie si on s'arrêtait maintenant : les matchs et
+   options déjà actés des manches précédentes, plus (avec extraLikes) les Super Swipes de
+   la manche en cours pas encore poussés au foyer. Ne compte JAMAIS un like simple pas
+   encore matché : sans ça on inventerait un menu que l'autre n'a pas accepté. Fonction
+   pure — ne modifie rien, réutilisée à la fois pour l'affichage en temps réel et pour
+   vérifier, après envoi réel des votes, la valeur qu'on fige dans session/targets. */
+function remotePreviewLiked(cat, ses, extraLikes) {
+  if (!ses) return 0;
+  let votes = ses.votes || { p1: {}, p2: {} };
+  if (extraLikes && Object.keys(extraLikes).length) {
+    votes = { p1: Object.assign({}, votes.p1), p2: Object.assign({}, votes.p2) };
+    votes[RC.me] = Object.assign({}, votes[RC.me], extraLikes);
+  }
+  return remotePhaseState(Object.assign({}, ses, { votes }), cat).liked.length;
+}
 /* ---------- Écrans du mode À distance ---------- */
 function partnerName() { const o = other(RC.me); return (S.rnames && S.rnames[o] && S.rnames[o].nom) || "l'autre"; }
 function myName() { return (S.rnames && S.rnames[RC.me] && S.rnames[RC.me].nom) || "moi"; }
@@ -3252,6 +3371,11 @@ function renderRemoteDeck(page) {
   if (!remaining.length) { finishRemoteRound(); return; }
   const top3 = remaining.slice(0, 3).map(id => byId[id]).filter(Boolean);
   const vedette = top3[0];
+  // Arrêt anticipé de la pioche (V1 uniquement) — mode distant : ne compte que ce qui est
+  // déjà réellement au menu (matchs actés + Super Swipes), jamais un like solo pas encore
+  // confirmé par l'autre — voir remotePreviewLiked.
+  const canStop = !(typeof SIMPLE !== "undefined" && SIMPLE);
+  const nRetenus = canStop ? remotePreviewLiked(rs.cat, S.rsession, rs.likes) : 0;
   page.classList.add("deck-mode");
   page.innerHTML = `
   ${vedette ? monoSVG(vedette) : ""}
@@ -3267,6 +3391,7 @@ function renderRemoteDeck(page) {
     </div>
     <div class="deck" id="deck">${top3.map((r, i) => cardHTML(r, i)).reverse().join("")}</div>
     <div class="hint"><span class="caps">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "Vous pouvez aussi faire <b>glisser</b> la carte" : "← passe · <b>glisse la carte</b> · j'adore →"}</span></div>
+    ${(canStop && nRetenus >= 1) ? `<button class="btn btn-ghost btn-sm stop-phase-btn" id="stop-phase">Terminer avec ${nRetenus === 1 ? "ce plat" : "ces " + nRetenus + " plats"}</button>` : ""}
     <div class="deck-actions">
       <button class="act-btn nope" id="btn-nope"><svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round'><path d='M6.5 6 L18 18.2 M17.8 6.2 L6.2 17.8'/></svg><span class="alab">Non merci</span></button>
       <button class="act-btn info" id="btn-info"><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><path d='M2.5 12 q9.5 -10.5 19 0 q-9.5 10.5 -19 0 Z'/><circle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/></svg><span class="alab">Voir</span></button>
@@ -3285,6 +3410,8 @@ function renderRemoteDeck(page) {
   });
   const du = $("#deck-undo");
   if (du) du.addEventListener("click", undoRemoteSwipe);
+  const sp = $("#stop-phase");
+  if (sp) sp.addEventListener("click", stopRemotePhase);
   if (topCard) attachDrag(topCard);
 }
 function remoteVote(id, liked, superLike) {
@@ -3309,6 +3436,36 @@ async function finishRemoteRound() {
     S.rswipe = null; store.set("bp_rswipe", null);
     _lastRoom = ""; toast((typeof SIMPLE !== "undefined" && SIMPLE) ? "Vos choix sont envoyés" : "Swipes envoyés"); render(); pollRoom();
   } catch (e) { syncErr(e); }
+}
+/* Arrêt anticipé de la pioche à distance (V1 uniquement, tâche « arrêter la pioche en
+   cours ») — celui qui termine fixe l'état de la phase en abaissant session/targets/<cat>
+   au nombre de plats déjà réellement retenus : remotePhaseState() (déjà utilisé par les
+   deux téléphones à chaque poll) déclare alors la catégorie complète pour tout le monde,
+   sans mécanisme parallèle. L'autre téléphone reçoit simplement ce nouveau target par la
+   room au prochain sondage. */
+async function stopRemotePhase() {
+  const rs = S.rswipe;
+  if (!rs || !S.rsession) return;
+  const cat = rs.cat;
+  const btn = document.getElementById("stop-phase");
+  if (btn) { if (btn.dataset.busy) return; btn.dataset.busy = "1"; btn.disabled = true; }
+  try {
+    if (Object.keys(rs.likes).length) {
+      await api.patch("session/votes/" + RC.me, rs.likes);
+      S.rsession.votes = S.rsession.votes || { p1: {}, p2: {} };
+      S.rsession.votes[RC.me] = Object.assign({}, S.rsession.votes[RC.me], rs.likes);
+    }
+    const target = Math.max(1, remotePreviewLiked(cat, S.rsession, null));
+    await api.put("session/targets/" + cat, target);
+    S.rsession.targets = Object.assign({}, S.rsession.targets, { [cat]: target });
+    S.rswipe = null; store.set("bp_rswipe", null);
+    _lastRoom = "";
+    toast("Catégorie terminée avec " + target + (target > 1 ? " plats" : " plat") + " — au menu", 2600);
+    render(); pollRoom();
+  } catch (e) {
+    syncErr(e);
+    if (btn) { btn.disabled = false; delete btn.dataset.busy; }
+  }
 }
 function renderRemoteRecap(page, states) {
   const ses = S.rsession;
@@ -3576,8 +3733,9 @@ function openSettings() {
       <button class="btn btn-ghost btn-block" id="rc-share">Copier l'invitation pour l'autre téléphone</button>
       ${remoteOn() ? '<button class="btn btn-ghost btn-block" id="rc-off" style="color:var(--tomate)">Déconnecter ce téléphone</button>' : ""}
     </div>
-    <h4 class="mh">Sauvegarde de secours</h4>
+    <h4 class="mh">Sauvegarde et récupération</h4>
     <div style="display:flex; flex-direction:column; gap:8px">
+      ${semaineRecuperable() ? '<button class="btn btn-ghost btn-block" id="rc-recover">Récupérer notre dernier menu</button>' : ""}
       <button class="btn btn-ghost btn-block" id="bk-copy">Copier ma sauvegarde (menus, favoris, courses)</button>
       <textarea id="bk-paste" rows="2" aria-label="Coller une sauvegarde à restaurer" placeholder="pour restaurer : collez une sauvegarde ici…" style="width:100%; border:1.5px solid rgba(45,42,38,.14); border-radius:11px; padding:10px 12px; font-size:16px; font-family:inherit"></textarea>
       <button class="btn btn-ghost btn-block" id="bk-restore">Restaurer cette sauvegarde</button>
@@ -3670,6 +3828,8 @@ function openSettings() {
     if (_pollTimer) { clearTimeout(_pollTimer); _pollTimer = null; }
     setDot(); closeModal(); toast("Téléphone déconnecté du foyer"); render();
   });
+  const recBtn = $("#rc-recover");
+  if (recBtn) recBtn.addEventListener("click", () => { closeModal(); recoverWeekFromHist(); });
   $("#bk-copy").addEventListener("click", copierSauvegarde);
   $("#bk-restore").addEventListener("click", () => {
     const v = $("#bk-paste").value.trim();
