@@ -1135,6 +1135,16 @@ function weekMonday() {
   m.setDate(m.getDate() - ((m.getDay() + 6) % 7));
   return m;
 }
+/* Remise en forme AU CHARGEMENT : une semaine revenue amputée de la room (Firebase efface
+   les nulls et les tableaux vides) doit être réparée avant que quoi que ce soit ne la lise —
+   sinon un `forEach` sur un champ disparu casse l'application dès le démarrage. */
+(function repareWeekAuDemarrage() {
+  if (!S.week) return;
+  const norm = normaliseWeek(S.week);
+  const vide = !norm || (!norm.jours.some(d => d.dinerId) && !norm.petitsDejs.length && !norm.collations.length);
+  if (vide) { S.week = null; save.week(); }
+  else if (JSON.stringify(norm) !== JSON.stringify(S.week)) { S.week = norm; save.week(); }
+})();
 function dayDate(i) {
   const d = weekMonday();
   d.setDate(d.getDate() + i);
@@ -1410,6 +1420,7 @@ function openReglagesFacile() {
       ${remoteOn()
         ? `<button class="btn btn-ghost btn-block" id="rg-duo">Notre duo${autre ? " · " + esc(autre) : ""}</button>`
         : `<button class="btn btn-ghost btn-block" id="rg-pair">Relier deux téléphones</button>`}
+      ${semaineRecuperable() ? '<button class="btn btn-ghost btn-block" id="rg-recover">Récupérer mon dernier menu</button>' : ""}
       <button class="btn btn-ghost btn-block" id="rg-backup">Sauvegarde de mes données</button>
       <button class="btn btn-ghost btn-block" id="rg-aide">Revoir l'explication du début</button>
       <button class="btn btn-primary btn-block" id="rg-close">Fermer</button>
@@ -1425,6 +1436,8 @@ function openReglagesFacile() {
   };
   $("#rg-xl").addEventListener("click", basculeXl);
   $("#rg-xl").addEventListener("keydown", e => { if (e.key === "Enter" || e.key === " ") { e.preventDefault(); basculeXl(); } });
+  const rr = $("#rg-recover");
+  if (rr) rr.addEventListener("click", () => { closeModal(); recoverWeekFromHist(); });
   const rd = $("#rg-duo"); if (rd) rd.addEventListener("click", openDuoFacile);
   const rp = $("#rg-pair"); if (rp) rp.addEventListener("click", () => openPairingFacile());
   $("#rg-backup").addEventListener("click", openSauvegardeFacile);
@@ -2273,10 +2286,23 @@ function blendCardHTML(blend) {
 }
 function renderSemaine() {
   const page = $("#semaine-page");
+  // Filet de sécurité : une semaine structurellement cassée (revenue amputée de la room)
+  // est remise en forme ici, et si elle ne contient plus aucun plat elle est traitée comme
+  // absente — ainsi l'écran de récupération s'affiche au lieu d'une page blanche.
+  if (S.week) {
+    const norm = normaliseWeek(S.week);
+    if (!norm || (!norm.jours.some(d => d.dinerId) && !norm.petitsDejs.length && !norm.collations.length)) {
+      S.week = null; save.week();
+    } else if (JSON.stringify(norm) !== JSON.stringify(S.week)) {
+      S.week = norm; save.week();
+    }
+  }
   if (!S.week) {
     // Récupération (V1 uniquement) : si un menu validé existe dans l'historique, on
     // propose d'abord de le restaurer — bien plus rassurant qu'une pioche à refaire.
-    const peutRecuperer = !(typeof SIMPLE !== "undefined" && SIMPLE) && semaineRecuperable();
+    // La récupération est un filet anti-perte de données : elle doit exister dans LES DEUX
+    // versions, y compris la Facile — c'est là que l'utilisateur est le plus démuni.
+    const peutRecuperer = semaineRecuperable();
     page.innerHTML = `<div class="empty-state">
       <h2 class="section">Pas encore de menu</h2>
       <p>Lancez une pioche à deux dans l'onglet Pioche pour composer la semaine.</p>
@@ -2338,6 +2364,11 @@ function renderSemaine() {
       <span class="caps">Semaine du ${lundi.getDate()} au ${dim.getDate()} · ${dim.getFullYear()}</span>
     </div>
     <div class="cut" style="margin:11px 0 0"></div>
+    ${(!w.jours.some(d => d.dinerId) && semaineRecuperable()) ? `<div class="budget-card" style="margin-top:12px">
+      <div class="bc-head"><span class="caps">Cette semaine est vide</span></div>
+      <div class="bc-sub">Votre dernier menu validé est toujours en mémoire.</div>
+      <button class="btn btn-primary btn-block" id="recover-week" style="margin-top:11px">Récupérer notre dernier menu</button>
+    </div>` : ""}
     ${blendCard}
     <div class="wall">
       ${cells}
@@ -2349,6 +2380,8 @@ function renderSemaine() {
     <button class="btn btn-ghost btn-block mt20" id="new-week">Nouvelle pioche (nouvelle semaine)</button>
   </div>`;
 
+  const recIn = page.querySelector("#recover-week");
+  if (recIn) recIn.addEventListener("click", recoverWeekFromHist);
   page.querySelectorAll("[data-up]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); moveDay(+b.dataset.up, -1); }));
   page.querySelectorAll("[data-down]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); moveDay(+b.dataset.down, 1); }));
   page.querySelectorAll("[data-swap]").forEach(b => b.addEventListener("click", e => { e.stopPropagation(); openPicker(+b.dataset.swap); }));
@@ -3114,6 +3147,28 @@ async function pollRoom() {
 function weekUtilisable(w) {
   return !!(w && Array.isArray(w.jours) && w.jours.some(d => d && d.dinerId));
 }
+/* Firebase supprime les valeurs nulles et les tableaux vides : une semaine qui a transité
+   par la room peut revenir amputée de `jours`, `petitsDejs`, `collations` ou `mult`, et
+   `jours` peut être un objet indexé au lieu d'un tableau. On la remet en forme AVANT tout
+   rendu — sans quoi renderSemaine lève une exception et la page reste blanche. */
+function normaliseWeek(w) {
+  if (!w || typeof w !== "object") return null;
+  let jours = w.jours;
+  if (jours && !Array.isArray(jours)) jours = Object.keys(jours).sort((a, b) => a - b).map(k => jours[k]);
+  if (!Array.isArray(jours)) jours = [];
+  jours = JOURS.map((nom, i) => {
+    const d = jours[i] && typeof jours[i] === "object" ? jours[i] : {};
+    return { jour: d.jour || nom, dinerId: (d.dinerId && byId[d.dinerId]) ? d.dinerId : null };
+  });
+  const liste = v => (Array.isArray(v) ? v : v && typeof v === "object" ? Object.keys(v).sort((a, b) => a - b).map(k => v[k]) : []).filter(id => id && byId[id]);
+  return Object.assign({}, w, {
+    creee: w.creee || ymd(weekMonday()),
+    jours,
+    petitsDejs: liste(w.petitsDejs),
+    collations: liste(w.collations),
+    mult: (w.mult && typeof w.mult === "object") ? w.mult : {}
+  });
+}
 function applyRoom(room) {
   const j = JSON.stringify(room);
   if (j === _lastRoom) return;
@@ -3126,8 +3181,8 @@ function applyRoom(room) {
   // cas, c'est une "absence distante" et la règle centrale s'applique pareil (pas de
   // `if (room.week !== undefined)` qui court-circuiterait la réparation).
   if (weekUtilisable(room.week)) {
-    // semaine distante exploitable (au moins un dîner) → on l'adopte normalement
-    S.week = room.week; store.set("bp_week", S.week);
+    // semaine distante exploitable (au moins un dîner) → on l'adopte, remise en forme
+    S.week = normaliseWeek(room.week); store.set("bp_week", S.week);
     maybeCountBlend(S.week); // V1 uniquement — Blend : compte 1 fois par semaine appliquée, même sur le téléphone qui l'a validée
   } else if (weekUtilisable(S.week)) {
     // règle centrale anti-perte : une semaine distante nulle, vide ou absente ne peut
