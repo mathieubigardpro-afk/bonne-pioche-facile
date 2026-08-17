@@ -861,6 +861,56 @@ input:focus-visible,textarea:focus-visible{outline:2.5px solid var(--prune);outl
 .empty-state .emo{font-size:46px}
 .empty-state p{font-size:14px;color:var(--encre-2);line-height:1.55}
 .mt8{margin-top:8px}.mt14{margin-top:14px}.mt20{margin-top:20px}
+/* ================= FACILE — matchs en temps réel / continuité / coup de cœur =================
+   Bloc ajouté, distinct de « MODE FACILE » ci-dessus (aucune règle existante n'y est modifiée) :
+   uniquement des sélecteurs nouveaux, plus UNE override ciblée (même sélecteur, source plus
+   tardive donc prioritaire à spécificité égale) pour révéler #btn-super en Facile. */
+body.simple #btn-super{display:flex} /* le Coup de cœur devient exploitable en Facile */
+/* le label texte "Coup de cœur" (nouvellement visible en Facile) doit rester lisible :
+   #C08137 (icône, réglage V1 existant, non modifié) est sous le seuil de contraste sur
+   fond blanc une fois affiché en texte — on assombrit UNIQUEMENT le libellé, pas l'icône. */
+body.simple .act-btn.super .alab{color:var(--prune-l)}
+.fmb{background:var(--blanc);border-radius:var(--r-md);box-shadow:var(--sh-soft);padding:10px 14px;margin:0 0 8px;z-index:6}
+.fmb-count{font-weight:800;font-size:13.5px;color:var(--prune)}
+.fmb-chips{display:flex;gap:6px;overflow-x:auto;margin-top:7px;padding-bottom:2px;-webkit-overflow-scrolling:touch}
+.fmb-chip{display:inline-flex;align-items:center;gap:5px;flex-shrink:0;background:var(--creme2);border-radius:20px;padding:4px 10px 4px 4px;font-size:11.5px;font-weight:700;color:var(--encre)}
+.fmb-chip .picto{width:20px;height:20px}
+.fmb-chip b{font-weight:700;max-width:88px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.fmb-chip.fmb-in{animation:fmb-pop .4s cubic-bezier(.34,1.56,.64,1) both}
+@keyframes fmb-pop{from{transform:scale(.4);opacity:0}to{transform:scale(1);opacity:1}}
+@media (prefers-reduced-motion:reduce){.fmb-chip.fmb-in{animation-duration:.01s}}
+.fmb-partner{margin-top:6px;font-size:11.5px;color:var(--rose)}
+.super-hint{margin:0 0 8px;text-align:center;color:var(--rose);line-height:1.4}
+.facile-success .fs-emo{font-size:44px;display:block}
+.facile-success .rot-grid{margin:4px 0 6px}
+/* ================= FACILE — goûts (accueil + Réglages) et plus de couleur =================
+   Bloc ajouté, sur le même principe que le bloc « matchs en temps réel » ci-dessus : aucune
+   règle existante n'y est modifiée, uniquement des sélecteurs nouveaux (dont des `body.simple
+   ...` neufs, qui n'écrasent rien de « MODE FACILE » plus haut) et des couleurs déjà de la
+   palette Pastel Gourmand (--prune/--abricot/--rose/--olive/--tomate/--creme…), jamais de
+   nouvelle teinte. Le contraste des libellés reste sur --encre partout (voir app.js). */
+#onboard.ob-scroll{overflow-y:auto;justify-content:flex-start;padding-top:calc(34px + var(--safe-t));padding-bottom:34px}
+.ob-gouts{width:100%;max-width:340px}
+.ob-gouts h2{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.16;color:var(--encre)}
+.ob-gouts p{font-size:14.5px;line-height:1.5;color:#5A4A50;margin-top:8px}
+.ob-gouts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+.ob-pill{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
+  min-height:84px;border-radius:18px;border:2.5px solid transparent;padding:12px 8px;
+  cursor:pointer;font-family:inherit;box-shadow:var(--sh-soft);transition:transform .12s}
+.ob-pill:active{transform:scale(.96)}
+.ob-pill.on{border-color:var(--pc,var(--prune))}
+.ob-pill .obp-emo{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
+.ob-pill .obp-lbl{font-size:13px;font-weight:800;color:var(--encre);line-height:1.25;text-align:center}
+.ob-gouts-note{margin:16px 0 4px;text-align:center;color:var(--rose);line-height:1.4}
+.ob-gouts .ob-dots{margin:18px 0 14px}
+.ob-gouts .btn{width:100%}
+/* onglets actifs : un peu plus de vivacité en Facile, mêmes couleurs de marque.
+   background-color explicite en plus du dégradé (fond « en dur » détectable par les audits
+   de contraste automatiques) — le rendu visuel est inchangé. */
+body.simple nav button.active{background-color:var(--abricot);background-image:linear-gradient(135deg,var(--abricot) 0%,#E7A98C 100%)}
+body.simple .home-mode button.on{background-color:var(--creme2);background-image:linear-gradient(135deg,var(--creme2) 0%,var(--blush) 100%)}
+/* écrans vides : un aplat doux plutôt que du blanc cassé */
+body.simple .empty-state{background-color:var(--creme2);background-image:linear-gradient(165deg,var(--creme2) 0%,var(--blush) 100%);border-radius:var(--r-lg);margin:14px;min-height:calc(70vh - 28px)}
 </style>
 </head>
 <body>
@@ -954,6 +1004,10 @@ const S = {
   // recettes exactement comme avant l'ajout de l'option — zéro changement en Facile, qui de
   // toute façon ne contient aucune recette gs-/gsp-/gsc- dans son build).
   sensibles: (typeof SIMPLE !== "undefined" && SIMPLE) ? 0 : store.get("bp_sensibles", 0),
+  // Goûts — Facile uniquement (onboarding + Réglages « Mes goûts »). En V1 on ne lit ni
+  // n'écrit bp_gouts, S.gouts reste { aime: [], evite: [] } sans jamais toucher le stockage,
+  // sur le même modèle que S.filtres / S.sensibles ci-dessus.
+  gouts: (typeof SIMPLE !== "undefined" && SIMPLE) ? store.get("bp_gouts", { aime: [], evite: [] }) : { aime: [], evite: [] },
   tab: "pioche",
   browse: { q: "", cat: "tous", univers: "tous", tri: "aleatoire" }
 };
@@ -973,7 +1027,8 @@ const save = {
   session: () => store.set("bp_session", S.session),
   kudos: () => store.set("bp_kudos", S.kudos),
   filtres: () => store.set("bp_filtres", S.filtres),
-  sensibles: () => store.set("bp_sensibles", S.sensibles)
+  sensibles: () => store.set("bp_sensibles", S.sensibles),
+  gouts: () => store.set("bp_gouts", S.gouts) // appelée uniquement depuis du code gated SIMPLE
 };
 
 const byId = {};
@@ -1183,9 +1238,15 @@ function filtresActifs() { return FILTRES_SANTE.filter(f => S.filtres && S.filtr
    ne jette jamais, même si r.sante est absent (build Facile) ou r est incomplet. */
 function passeFiltres(r) {
   const actifs = filtresActifs();
-  if (!actifs.length) return true;
-  if (!r || !r.sante) return false;
-  return actifs.every(f => r.sante[f] === 1);
+  if (actifs.length) {
+    if (!r || !r.sante) return false;
+    if (!actifs.every(f => r.sante[f] === 1)) return false;
+  }
+  // Goûts (Facile uniquement, voir plus bas) : exclusion réelle, sur EXACTEMENT le même
+  // mécanisme que les filtres santé ci-dessus — aucun chemin parallèle. En V1, passeGouts()
+  // n'est jamais évaluée (court-circuit sur SIMPLE) : zéro changement de comportement.
+  if (typeof SIMPLE !== "undefined" && SIMPLE && !passeGouts(r)) return false;
+  return true;
 }
 
 /* ---------- Table sensible (V1 uniquement) ----------
@@ -1198,6 +1259,109 @@ function passeFiltres(r) {
    est alors toujours fausse pour son RECETTES, donc une no-op garantie. */
 function isSensible(r) { return !!(r && /^(gs|gsp|gsc)-/.test(r.id)); }
 function recettesVisibles() { return S.sensibles ? RECETTES : RECETTES.filter(r => !isSensible(r)); }
+
+/* ---------- Goûts (Facile uniquement) ----------
+   « aime » = bonus de tri (buildQueue, comparable à moodBoost/isFav ci-dessus) : ne modifie
+   jamais la composition d'un pool, seulement l'ordre.
+   « evite » = exclusion réelle, implémentée EXACTEMENT comme les filtres santé du foyer :
+   passeFiltres() (filtre dur + complément si le pool devient trop court) côté pioche
+   ensemble, et extendExclForFiltres() → ses.excl (déterministe, calculé UNE fois par le
+   créateur de la session, rejoué à l'identique par les deux téléphones) côté pioche
+   distante. Aucun mécanisme parallèle : c'est la contrainte n°1 de la spec. */
+/* libellés (REGIMES_EVITE_ITEMS, plus bas près de l'écran B) dérivent les mêmes clés */
+const REGIMES_EVITE = ["porc", "viande-rouge", "viande", "poisson", "laitier", "gluten", "oeufs"];
+/* familles de cuisine du bouton « aime » (Écran A) — mêmes libellés grand public que
+   UNIV_FACILE (voir plus bas), pointant vers les vrais noms d'univers du corpus */
+const GOUTS_FAMILLES = [
+  { cle: "mediterranee", emoji: "🫒", label: "Méditerranée", univers: ["Méditerranée & Levant", "Levant une-plaque — esprit Simple", "Matins du Levant — esprit Simple", "Encas du Levant — esprit Simple"] },
+  { cle: "asie", emoji: "🍜", label: "Asie", univers: ["Asie douce"] },
+  { cle: "latino", emoji: "🌶️", label: "Amérique latine", univers: ["Amérique latine & soleil"] },
+  { cle: "terroir", emoji: "🧀", label: "Terroir", univers: ["Terroir & Europe revisités"] },
+  { cle: "ocean", emoji: "🐟", label: "Poissons & mer", univers: ["Océan — poissons & fruits de mer"] },
+  { cle: "veggie", emoji: "🥦", label: "Végétarien", univers: ["Veggie protéiné & céréales du monde"] },
+  { cle: "express", emoji: "⚡", label: "Express", univers: ["Express — 5 minutes chrono", "Express — 10 minutes chrono"] }
+];
+function stripAcc(s) {
+  return String(s || "").toLowerCase().normalize("NFD").replace(/[̀-ͯ]/g, "").replace(/œ/g, "oe").replace(/æ/g, "ae");
+}
+/* mots-clés (normalisés, sans accents) par régime — conservateur : en cas de doute sur un
+   ingrédient composé (ex. « lait de coco », « beurre de cacahuète », « farine de riz »), on
+   NE déclenche PAS l'exclusion à tort ; sur un ingrédient sans ambiguïté, on l'exclut. */
+const RE_PORC = /\b(porc|jambon|chorizo|bacon|saucisson|pancetta|prosciutto|coppa|guanciale|andouille|boudin|cochon)\b/;
+const RE_LARDON = /\blardons?\b/;
+const RE_VIANDE_ROUGE = /\b(boeuf|agneau|veau|mouton|gibier|venaison|bison|rumsteak|steak|entrecote|bavette|onglet|faux-?filet|merguez)\b/;
+const RE_VOLAILLE = /\b(poulet|dinde|canard|volaille|pintade|caille|oie)\b/;
+const RE_POISSON = /\b(saumon|thon|cabillaud|colin|dorade|bar|flétan|fletan|hareng|lieu|lotte|maquereau|merlu|sardine|truite|morue|haddock|poisson|anchois|tilapia|crevettes?|moules?|palourdes?|calamar|poulpe|saint-jacques|crabe|homard|langoustine|huitres?|dashi|nuoc[- ]mam)\b/;
+const RE_LAIT = /\blait\b(?!\s+d[e'’]\s*(coco|amande|riz|avoine|soja|noisette))/;
+const RE_CREME = /\bcreme\b(?!\s+de\s*coco)/;
+const RE_BEURRE = /\bbeurre\b(?!\s+d[e'’]\s*(cacahuete|arachide|cacao|amande))/;
+const RE_LAITIER_AUTRE = /\b(fromage|yaourt|yogourt|parmesan|mozzarella|feta|ricotta|comte|gruyere|emmental|cheddar|reblochon|halloumi|paneer|labneh|labne|skyr|whey|caseine|mascarpone|boursin|cottage cheese)\b/;
+const RE_OEUFS = /\boeufs?\b/;
+function hasGlutenIngredient(nomNorm) {
+  if (/\bfarine\b/.test(nomNorm) && !/(avoine|mais|pois chiche|riz|sarrasin|amande|coco|chataigne)/.test(nomNorm)) return true;
+  return /\b(pain|brioche|cannelloni|orzo|orge|boulgour|freekeh|semoule|epeautre|seigle|udon|soba|couscous|chapelure)\b/.test(nomNorm)
+    || (/tortilla/.test(nomNorm) && /ble/.test(nomNorm)) || /sauce soja/.test(nomNorm);
+}
+/* signaux calculés une seule fois par recette (RECETTES est statique en cours de vie de
+   l'app), à partir des ingrédients (mots-clés) et des badges existants (veggie, sans-gluten) */
+const _regimeCache = new Map();
+function regimeFlags(r) {
+  if (!r) return {};
+  let f = _regimeCache.get(r.id);
+  if (f) return f;
+  const badges = r.badges || [];
+  const veggie = badges.indexOf("veggie") >= 0;
+  const sansGluten = badges.indexOf("sans-gluten") >= 0;
+  const noms = (r.ingredients || []).map(i => stripAcc(i.nom));
+  const has = re => noms.some(n => re.test(n));
+  const porc = !veggie && (has(RE_PORC) || noms.some(n => RE_LARDON.test(n) && !/(dinde|volaille|poulet|canard)/.test(n)));
+  const viandeRouge = !veggie && has(RE_VIANDE_ROUGE);
+  const volaille = !veggie && has(RE_VOLAILLE);
+  f = {
+    porc, "viande-rouge": viandeRouge,
+    viande: porc || viandeRouge || volaille || (!veggie && noms.some(n => /\bviande\b/.test(n))),
+    poisson: !veggie && has(RE_POISSON),
+    laitier: has(RE_LAIT) || has(RE_CREME) || has(RE_BEURRE) || has(RE_LAITIER_AUTRE),
+    gluten: sansGluten ? false : noms.some(hasGlutenIngredient),
+    oeufs: has(RE_OEUFS)
+  };
+  _regimeCache.set(r.id, f);
+  return f;
+}
+function goutsEvite() {
+  return (typeof SIMPLE !== "undefined" && SIMPLE && S.gouts && S.gouts.evite)
+    ? S.gouts.evite.filter(k => REGIMES_EVITE.indexOf(k) >= 0) : [];
+}
+function goutsAime() {
+  return (typeof SIMPLE !== "undefined" && SIMPLE && S.gouts && S.gouts.aime)
+    ? S.gouts.aime.filter(k => GOUTS_FAMILLES.some(g => g.cle === k)) : [];
+}
+let _aimeUnivSet = null, _aimeUnivKey = null;
+function goutsAimeUniversSet() {
+  const aime = goutsAime();
+  const key = aime.join(",");
+  if (_aimeUnivKey === key) return _aimeUnivSet;
+  const set = new Set();
+  aime.forEach(k => { const g = GOUTS_FAMILLES.find(x => x.cle === k); if (g) g.univers.forEach(u => set.add(u)); });
+  _aimeUnivKey = key; _aimeUnivSet = set;
+  return set;
+}
+/* vrai si la recette ne déclenche AUCUN des régimes évités */
+function passeGouts(r) {
+  const ev = goutsEvite();
+  if (!ev.length) return true;
+  if (!r) return false;
+  const f = regimeFlags(r);
+  return ev.every(k => !f[k]);
+}
+/* nombre de critères satisfaits (santé + goûts), pour le classement du complément quand un
+   pool filtré devient trop court — même logique que l'existant, juste étendue aux goûts */
+function nbFiltresSatisfaits(r, actifs, gouts) {
+  let n = 0;
+  actifs.forEach(fk => { if (r.sante && r.sante[fk] === 1) n++; });
+  if (gouts && gouts.length) { const f = regimeFlags(r); gouts.forEach(g => { if (!f[g]) n++; }); }
+  return n;
+}
 
 /* ---------- Navigation ---------- */
 document.querySelectorAll("nav button").forEach(b => {
@@ -1421,6 +1585,7 @@ function openReglagesFacile() {
         ? `<button class="btn btn-ghost btn-block" id="rg-duo">Notre duo${autre ? " · " + esc(autre) : ""}</button>`
         : `<button class="btn btn-ghost btn-block" id="rg-pair">Relier deux téléphones</button>`}
       ${semaineRecuperable() ? '<button class="btn btn-ghost btn-block" id="rg-recover">Récupérer mon dernier menu</button>' : ""}
+      <button class="btn btn-ghost btn-block" id="rg-gouts">Mes goûts</button>
       <button class="btn btn-ghost btn-block" id="rg-backup">Sauvegarde de mes données</button>
       <button class="btn btn-ghost btn-block" id="rg-aide">Revoir l'explication du début</button>
       <button class="btn btn-primary btn-block" id="rg-close">Fermer</button>
@@ -1440,6 +1605,7 @@ function openReglagesFacile() {
   if (rr) rr.addEventListener("click", () => { closeModal(); recoverWeekFromHist(); });
   const rd = $("#rg-duo"); if (rd) rd.addEventListener("click", openDuoFacile);
   const rp = $("#rg-pair"); if (rp) rp.addEventListener("click", () => openPairingFacile());
+  $("#rg-gouts").addEventListener("click", openGoutsFacile);
   $("#rg-backup").addEventListener("click", openSauvegardeFacile);
   $("#rg-aide").addEventListener("click", () => { closeModal(); showOnboarding(); });
   $("#rg-close").addEventListener("click", closeModal);
@@ -1583,18 +1749,24 @@ function buildQueue(cat, target, mood) {
   // moodBoost (V1 uniquement) : boost de tri au sein du pool déjà filtré par les filtres
   // santé ci-dessous — ne change JAMAIS la composition du pool (mêmes recettes qualifiées),
   // seulement leur ordre.
+  // « aime » (Facile uniquement) : même principe que moodBoost — un bonus de tri, jamais un
+  // filtre. aimeSet est calculé une seule fois hors de la boucle de score.
+  const facile = typeof SIMPLE !== "undefined" && SIMPLE;
+  const aimeSet = facile ? goutsAimeUniversSet() : null;
   const scoreOf = r => (isFav(r.id) ? 2.2 : 0) + (recent.has(r.id) ? -3 : 0) + (r.micro || 0) * 0.45
-    + kudosBoost(r.id) + moodBoost(r, mood) + Math.random() * 2;
-  // Filtres santé du foyer (V1 uniquement, filtre DUR) : le pool se restreint aux recettes
+    + kudosBoost(r.id) + moodBoost(r, mood) + (aimeSet && aimeSet.has(r.univers) ? 1.8 : 0) + Math.random() * 2;
+  // Filtres santé du foyer (V1 uniquement, filtre DUR) + Goûts évités (Facile uniquement,
+  // filtre DUR — même mécanisme, voir passeFiltres) : le pool se restreint aux recettes
   // conformes ; si ça ne suffit pas, on complète avec les recettes non conformes les mieux
-  // classées (nb de filtres actifs satisfaits, puis le score existant) — jamais l'inverse.
+  // classées (nb de critères satisfaits, puis le score existant) — jamais l'inverse.
   const actifs = filtresActifs();
+  const gouts = goutsEvite();
   let base = poolAll;
-  if (actifs.length) {
+  if (actifs.length || gouts.length) {
     const ok = poolAll.filter(passeFiltres);
     if (ok.length < target) {
       const nonOk = poolAll.filter(r => !passeFiltres(r));
-      const nbSat = r => actifs.reduce((n, f) => n + ((r.sante && r.sante[f] === 1) ? 1 : 0), 0);
+      const nbSat = r => nbFiltresSatisfaits(r, actifs, gouts);
       const rangNonOk = nonOk.map(r => ({ r, sat: nbSat(r), s: scoreOf(r) }))
         .sort((a, b) => (b.sat - a.sat) || (b.s - a.s));
       const need = Math.max(0, Math.min(nonOk.length, target * 3 + 6 - ok.length));
@@ -1771,9 +1943,10 @@ function renderDeck(page) {
        <div class="count">${liked.length}/${target}${moodChipHTML(ses.mood)}</div>`;
 
   const vedette = top3[0];
+  const facile = typeof SIMPLE !== "undefined" && SIMPLE;
   // Arrêt anticipé de la pioche (V1 uniquement) — mode ensemble : on peut s'arrêter dès
   // qu'au moins un plat est retenu dans la catégorie en cours et valider avec ceux-là.
-  const canStop = !duo && !(typeof SIMPLE !== "undefined" && SIMPLE) && liked.length >= 1;
+  const canStop = !duo && !facile && liked.length >= 1;
   page.classList.add("deck-mode");
   page.innerHTML = `
   ${vedette ? monoSVG(vedette) : ""}
@@ -1788,14 +1961,15 @@ function renderDeck(page) {
     <div class="deck" id="deck">
       ${top3.map((r, i) => cardHTML(r, i)).reverse().join("")}
     </div>
-    <div class="hint"><span class="caps">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "Vous pouvez aussi faire <b>glisser</b> la carte" : "← passe · <b>glisse la carte</b> · j'adore →"}</span></div>
+    <div class="hint"><span class="caps">${facile ? "Vous pouvez aussi faire <b>glisser</b> la carte" : "← passe · <b>glisse la carte</b> · j'adore →"}</span></div>
     ${canStop ? `<button class="btn btn-ghost btn-sm stop-phase-btn" id="stop-phase">Terminer avec ${liked.length === 1 ? "ce plat" : "ces " + liked.length + " plats"}</button>` : ""}
     <div class="deck-actions">
       <button class="act-btn nope" id="btn-nope" title="Pas cette semaine"><svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round'><path d='M6.5 6 L18 18.2 M17.8 6.2 L6.2 17.8'/></svg><span class="alab">Non merci</span></button>
       <button class="act-btn info" id="btn-info" title="Voir la recette"><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><path d='M2.5 12 q9.5 -10.5 19 0 q-9.5 10.5 -19 0 Z'/><circle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/></svg><span class="alab">Voir</span></button>
-      <button class="act-btn super" id="btn-super" title="Super Swipe — je pose une option !" aria-label="Super Swipe : poser une option" ${superAvailable() ? "" : "disabled"}><svg viewBox='0 0 24 24' width='24' height='24' fill='currentColor' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2.6 l2.7 6 l6.5 .7 l-4.8 4.4 l1.3 6.4 l-5.7 -3.3 l-5.7 3.3 l1.3 -6.4 l-4.8 -4.4 l6.5 -.7 Z'/></svg></button>
+      <button class="act-btn super" id="btn-super" title="${facile ? "Coup de cœur : il entre au menu !" : "Super Swipe — je pose une option !"}" aria-label="${facile ? "Coup de cœur" : "Super Swipe : poser une option"}" ${superAvailable() ? "" : "disabled"}><svg viewBox='0 0 24 24' width='24' height='24' fill='currentColor' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2.6 l2.7 6 l6.5 .7 l-4.8 4.4 l1.3 6.4 l-5.7 -3.3 l-5.7 3.3 l1.3 -6.4 l-4.8 -4.4 l6.5 -.7 Z'/></svg><span class="alab">Coup de cœur</span></button>
       <button class="act-btn like" id="btn-like" title="On la mange !"><svg viewBox='0 0 24 24' width='27' height='27' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round'><circle cx='12' cy='12' r='9.4'/><circle cx='8.6' cy='9.8' r='1.35' fill='currentColor' stroke='none'/><circle cx='15.4' cy='9.8' r='1.35' fill='currentColor' stroke='none'/><path d='M7.6 14.2 q4.4 4.4 8.8 0'/></svg><span class="alab">J'aime</span></button>
     </div>
+    ${superHintHTML()}
   </div>`;
 
   const topCard = page.querySelector(".card:not(.behind):not(.behind2)");
@@ -1870,8 +2044,17 @@ function cardHTML(r, depth) {
   const cls = depth === 0 ? "card" : depth === 1 ? "card behind" : "card behind2";
   if (depth !== 0) return `<div class="${cls}" data-id="${r.id}"></div>`;
   const uc = univColor(r.univers);
+  // Facile uniquement : léger dégradé de couleur d'univers en fond de carte (assiette moins
+  // « blanc partout »), et pastille du picto un peu plus saturée. Contrastes déjà vérifiés
+  // (le texte de la carte reste sur --encre/--encre-2, jamais sur cette teinte). En V1,
+  // aucun attribut style n'est ajouté au conteneur : pixel identique à avant.
+  const facile = typeof SIMPLE !== "undefined" && SIMPLE;
+  // background-color explicite (en plus du dégradé) : garantit un fond « en dur » détectable
+  // par les audits de contraste automatiques (getComputedStyle().backgroundColor), identique
+  // en pratique à la zone supérieure du dégradé — le rendu visuel, lui, ne change pas.
+  const cardWash = facile ? ` style="background-color:${mixWhite(uc.fg, .05)};background-image:linear-gradient(178deg, ${mixWhite(uc.fg, .05)} 0%, var(--blanc) 58%)"` : "";
   return `
-  <div class="${cls}" data-id="${r.id}">
+  <div class="${cls}" data-id="${r.id}"${cardWash}>
     <div class="stamp like">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "J'AIME" : "MIAM"}</div>
     <div class="stamp nope">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "NON MERCI" : "PASSE"}</div>
     <div class="stamp super">⭐ OPTION</div>
@@ -1880,7 +2063,7 @@ function cardHTML(r, depth) {
     <div class="card-band" style="background:${uc.fg}"></div>
     <div class="card-inner">
       <div class="grip"></div>
-      <div class="card-visu"><span class="pastille big" style="background:${mixWhite(uc.fg, .12)}">${pictoSVG(r, "picto")}</span>${prixCarteHTML(r)}</div>
+      <div class="card-visu"><span class="pastille big" style="background:${mixWhite(uc.fg, facile ? .22 : .12)}">${pictoSVG(r, "picto")}</span>${prixCarteHTML(r)}</div>
       <div class="card-body">
         <span class="univers-tag caps" style="color:${uc.fg}">${esc(universAffiche(r.univers))}</span>
         <h3>${esc(r.nom)}</h3>
@@ -2339,10 +2522,13 @@ function renderSemaine() {
     const uc = univColor(r.univers);
     // kudos d'après-repas (V1 uniquement) : uniquement sur la cellule d'aujourd'hui
     const kudos = (isToday && !(typeof SIMPLE !== "undefined" && SIMPLE)) ? kudosRowHTML(r.id) : "";
-    return `<div class="cell${isToday ? " today" : ""}" data-day="${i}" data-id="${r.id}" style="background:${univSoft(r.univers)};--uc:${uc.fg}">
+    // Facile uniquement : la couleur d'univers de la cellule (déjà présente en V1) est un
+    // peu plus affirmée — le texte reste sur --encre (contraste inchangé, vérifié ≥ 4.5:1).
+    const facileCell = typeof SIMPLE !== "undefined" && SIMPLE;
+    return `<div class="cell${isToday ? " today" : ""}" data-day="${i}" data-id="${r.id}" style="background:${univSoft(r.univers, facileCell ? .2 : .17)};--uc:${uc.fg}">
       ${isToday ? '<span class="todaytag">AUJOURD\'HUI</span>' : ""}
       <span class="dnum">${dt.getDate()}</span><span class="dw">${JOURS_ABR[i]}</span>
-      <span class="pastille" style="background:${mixWhite(uc.fg, .07)}">${pictoSVG(r, "picto")}</span>
+      <span class="pastille" style="background:${mixWhite(uc.fg, facileCell ? .16 : .07)}">${pictoSVG(r, "picto")}</span>
       <div class="dish">${esc(r.nom)}</div>
       <div class="lun">→ déjeuner de ${JOURS_ABR[(i + 1) % 7].slice(0, 3).toLowerCase()}.</div>
       ${kudos}
@@ -2685,11 +2871,15 @@ function renderCourses() {
   const todo = items.filter(it => !S.checked[it.key]);
   const byRayon = {};
   todo.forEach(it => (byRayon[it.rayon] = byRayon[it.rayon] || []).push(it));
+  // Facile uniquement : chips de courses plus saturées par rayon — le texte y reste fixé
+  // sur --encre (règle « body.simple .gtile:not(.done) », existante, non modifiée), donc
+  // ce changement de fond ne touche jamais le contraste déjà validé.
+  const facileCourses = typeof SIMPLE !== "undefined" && SIMPLE;
   const rayonsHTML = RAYONS.filter(r => byRayon[r]).map(r => {
     const c = rayonColor(r);
     return `<div class="rayon-block">
       <div class="rayon-title" style="color:${c.fg}"><span class="rname"><span class="rdot" style="background:${c.fg}"></span>${r}</span><span class="n">${byRayon[r].length}</span></div>
-      <div class="gtiles">${byRayon[r].map(it => tile(it.key, it.nom, it.qtyLabel, mixWhite(c.fg, .16), c.fg)).join("")}</div>
+      <div class="gtiles">${byRayon[r].map(it => tile(it.key, it.nom, it.qtyLabel, mixWhite(c.fg, facileCourses ? .30 : .16), c.fg)).join("")}</div>
     </div>`;
   }).join("");
 
@@ -3106,6 +3296,12 @@ const rsync = {
 };
 /* polling + application de l'état distant */
 let _pollTimer = null, _lastRoom = "", _dragging = false, _pollErrs = 0;
+/* Facile — bandeau de matchs en temps réel (tâche « matchs visibles pendant la pioche ») :
+   _fmbSeenIds mémorise les ids déjà affichés, pour n'animer que les VRAIES nouveautés lors
+   d'un rafraîchissement ciblé du bandeau ; _facileSuccessCat mémorise la catégorie qui vient
+   d'atteindre sa cible, pour afficher l'état de réussite dédié une fois, sans écran
+   intermédiaire. Ni l'un ni l'autre ne joue le moindre rôle en V1. */
+let _fmbSeenIds = [], _facileSuccessCat = null;
 function schedulePoll() {
   if (!remoteOn()) { _pollTimer = null; return; }
   // en cas d'erreurs répétées, on espace les tentatives (5 s → 60 s), et on revient à 5 s dès que ça remarche
@@ -3220,6 +3416,13 @@ function applyRoom(room) {
     trimKudos(); save.kudos();
   }
   if (S.rsession && !S.rsession.validated && !S.session) S.pendingMode = "remote";
+  // Facile — CONTRAINTE ABSOLUE n°1 (voir spec) : tant qu'on est en train de swiper le deck
+  // distant, un poll ne doit JAMAIS déclencher render() (donc jamais re-rendre le deck ni la
+  // carte en cours — le geste de swipe serait interrompu) — on met à jour uniquement le
+  // noeud du bandeau de matchs, ciblé par querySelector + innerHTML de CE noeud. Réservé à
+  // SIMPLE : en V1, le comportement existant (render() complet à chaque poll, sauf si
+  // userBusy()) reste strictement inchangé.
+  if (typeof SIMPLE !== "undefined" && SIMPLE && inFacileRemoteDeck()) { updateFacileMatchBanner(); updateCoursesBadge(); return; }
   if (!userBusy()) render(); else updateCoursesBadge();
 }
 /* PRNG déterministe : les deux téléphones calculent les mêmes decks */
@@ -3231,26 +3434,27 @@ function seededShuffle(arr, seedStr) {
   for (let i = a.length - 1; i > 0; i--) { const k = Math.floor(rng() * (i + 1)); [a[i], a[k]] = [a[k], a[i]]; }
   return a;
 }
-/* Filtres santé du foyer + Table sensible (V1) — étend l'exclusion de la pioche distante,
-   de façon déterministe. Appelé UNIQUEMENT par le créateur de session : le résultat voyage
-   dans ses.excl, donc les deux téléphones reconstruisent mécaniquement le MÊME deck
-   (contrainte n°1 : contenu identique, seuls les ids d'excl changent la donne). En SIMPLE
-   ou sans filtre actif ni Table sensible à exclure, renvoie baseExcl inchangé (zéro
+/* Filtres santé du foyer + Table sensible (V1) + Goûts évités (Facile, même mécanisme —
+   contrainte n°1) — étend l'exclusion de la pioche distante, de façon déterministe. Appelé
+   UNIQUEMENT par le créateur de session : le résultat voyage dans ses.excl, donc les deux
+   téléphones reconstruisent mécaniquement le MÊME deck (contenu identique, seuls les ids
+   d'excl changent la donne). Sans rien d'actif à exclure, renvoie baseExcl inchangé (zéro
    régression). */
 function extendExclForFiltres(baseExcl, targets) {
   const actifs = filtresActifs();
+  const gouts = goutsEvite();
   const sensOff = !S.sensibles; // Table sensible décochée → exclusion dure, sans complément
-  if (!actifs.length && !sensOff) return baseExcl;
+  if (!actifs.length && !sensOff && !gouts.length) return baseExcl;
   const exclSet = new Set(baseExcl);
   if (sensOff) RECETTES.forEach(r => { if (isSensible(r)) exclSet.add(r.id); });
-  if (actifs.length) RECETTES.forEach(r => { if (!passeFiltres(r)) exclSet.add(r.id); });
+  if (actifs.length || gouts.length) RECETTES.forEach(r => { if (!passeFiltres(r)) exclSet.add(r.id); });
   // baseSet fige la ligne de départ pour le rattrapage de plancher ci-dessous : on n'y
   // réintègre jamais un id qui y figurait déjà — ni l'anti-répétition (baseExcl), ni la
   // Table sensible si décochée (exclusion dure, sans exception) — seulement les recettes
-  // recalées par les filtres santé peuvent revenir si le pool devient trop court.
+  // recalées par les filtres santé / goûts peuvent revenir si le pool devient trop court.
   const baseSet = new Set(baseExcl);
   if (sensOff) RECETTES.forEach(r => { if (isSensible(r)) baseSet.add(r.id); });
-  const nbSat = r => actifs.reduce((n, f) => n + ((r.sante && r.sante[f] === 1) ? 1 : 0), 0);
+  const nbSat = r => nbFiltresSatisfaits(r, actifs, gouts);
   PHASES.forEach(ph => {
     const cat = ph.cat;
     const plancher = ((targets && targets[cat]) || 0) + 6;
@@ -3348,6 +3552,63 @@ function matchPop(ids) {
   document.body.appendChild(el);
   setTimeout(() => { el.classList.add("out"); setTimeout(() => el.remove(), 500); }, 2400);
 }
+/* ---------- Facile — matchs en temps réel / continuité / coup de cœur (SIMPLE uniquement) ----------
+   Vrai à tout instant où le deck distant est affiché ET actif (banderole présente dans le
+   DOM) : condition nécessaire avant toute mise à jour ciblée du bandeau. */
+function inFacileRemoteDeck() {
+  return !!(S.rswipe && S.rsession && S.rswipe.sessionId === S.rsession.id && document.querySelector("#facile-match-banner"));
+}
+/* Construit le HTML du bandeau de matchs ET marque au passage les ids déjà vus (_fmbSeenIds),
+   pour que seuls les VRAIS nouveaux matchs reçoivent l'animation d'apparition au prochain
+   rafraîchissement. Fonction pure côté DOM : elle ne construit qu'une chaîne, jamais de nœud. */
+function facileMatchBannerHTML() {
+  const rs = S.rswipe, ses = S.rsession;
+  if (!rs || !ses) return "";
+  const st = remotePhaseState(ses, rs.cat);
+  const seen = new Set(_fmbSeenIds);
+  const chips = st.liked.map(id => {
+    const r = byId[id]; if (!r) return "";
+    return `<span class="fmb-chip${seen.has(id) ? "" : " fmb-in"}">${pictoSVG(r, "picto")}<b>${esc(r.nom)}</b></span>`;
+  }).join("");
+  const votesOther = (ses.votes && ses.votes[other(RC.me)]) || {};
+  const otherCount = Object.keys(votesOther).filter(id => votesOther[id] && byId[id] && byId[id].categorie === rs.cat && st.liked.indexOf(id) < 0).length;
+  _fmbSeenIds = st.liked.slice();
+  return `<div class="fmb-count">${st.liked.length} plat${st.liked.length > 1 ? "s" : ""} trouvé${st.liked.length > 1 ? "s" : ""} sur ${st.target}</div>` +
+    (chips ? `<div class="fmb-chips">${chips}</div>` : "") +
+    (otherCount > 0 ? `<div class="fmb-partner">${esc(partnerName())} a déjà choisi ${otherCount} plat${otherCount > 1 ? "s" : ""} de son côté</div>` : "");
+}
+/* CONTRAINTE ABSOLUE n°1 (voir spec) : ne touche QUE le noeud du bandeau (querySelector
+   ciblé + innerHTML de ce noeud) — jamais render(), jamais le deck ni la carte en cours. */
+function updateFacileMatchBanner() {
+  const el = document.querySelector("#facile-match-banner");
+  if (!el) return;
+  el.innerHTML = facileMatchBannerHTML();
+}
+/* explication du Coup de cœur, une seule fois dans la vie de l'app (persistée par store) */
+function superHintHTML() {
+  if (!(typeof SIMPLE !== "undefined" && SIMPLE) || !superAvailable()) return "";
+  if (store.get("bp_superhint", 0)) return "";
+  store.set("bp_superhint", 1);
+  return `<div class="caps super-hint">Un plat que vous voulez à tout prix : il entre au menu même si l'autre ne l'a pas choisi.</div>`;
+}
+/* État de réussite dédié (tâche « continuité ») : la cible de <cat> vient d'être atteinte
+   pendant la pioche — on ne relance JAMAIS de swipe dans le vide, on montre clairement le
+   résultat, puis on laisse la main pour la suite (autres catégories, ou récap si tout est fait). */
+function renderFacileMatchSuccess(page, cat, st) {
+  const ph = PHASES.find(p => p.cat === cat);
+  page.innerHTML = `
+  <div class="pioche-setup facile-success" style="justify-content:flex-start; padding-top:14px">
+    <div class="hero-card" style="padding:22px; text-align:center">
+      <span class="fs-emo">🎉</span>
+      <h1 style="font-size:24px; margin-top:4px">C'est complet !</h1>
+      <p>${esc(ph.titre)} : ${st.liked.length} plat${st.liked.length > 1 ? "s" : ""} trouvé${st.liked.length > 1 ? "s" : ""} à deux.</p>
+    </div>
+    <div class="rot-grid">${st.liked.map(id => rowHTML(byId[id], true)).join("")}</div>
+    <button class="btn btn-primary btn-block" id="facile-success-continue">Continuer</button>
+  </div>`;
+  attachRowEvents(page);
+  $("#facile-success-continue").addEventListener("click", () => { _facileSuccessCat = null; render(); });
+}
 function renderRemotePioche(page) {
   const ses = S.rsession;
   if (S.rswipe && ses && S.rswipe.sessionId === ses.id) { renderRemoteDeck(page); return; }
@@ -3356,6 +3617,14 @@ function renderRemotePioche(page) {
   const states = {};
   let allDone = true;
   PHASES.forEach(ph => { states[ph.cat] = remotePhaseState(ses, ph.cat); if (!states[ph.cat].complete) allDone = false; });
+  // Facile — continuité : la cible d'UNE catégorie vient d'être atteinte pendant la pioche
+  // (voir finishRemoteRound) → état de réussite dédié plutôt que le tableau de bord des 3
+  // phases, sauf si tout est déjà bouclé (le récapitulatif existant fait déjà ce rôle).
+  if (typeof SIMPLE !== "undefined" && SIMPLE && _facileSuccessCat && !allDone
+    && states[_facileSuccessCat] && states[_facileSuccessCat].complete) {
+    renderFacileMatchSuccess(page, _facileSuccessCat, states[_facileSuccessCat]);
+    return;
+  }
   // matchs frais → animation (une seule fois par match, mémorisé par session)
   const matchedIds = [];
   PHASES.forEach(ph => { const st = states[ph.cat]; st.liked.forEach(id => { if (st.chosenBy[id] === "match") matchedIds.push(id); }); });
@@ -3416,7 +3685,7 @@ function renderRemotePioche(page) {
   $("#abort-remote").addEventListener("click", async e => {
     const b = e.currentTarget;
     if (!b.dataset.armed) { b.dataset.armed = "1"; b.textContent = "Vraiment abandonner ? Appuyez encore une fois"; b.style.color = "var(--tomate)"; return; }
-    try { await api.put("session", null); S.rsession = null; S.rswipe = null; store.set("bp_rswipe", null); _lastRoom = ""; render(); } catch (e2) { syncErr(e2); }
+    try { await api.put("session", null); S.rsession = null; S.rswipe = null; store.set("bp_rswipe", null); _lastRoom = ""; _facileSuccessCat = null; render(); } catch (e2) { syncErr(e2); }
   });
 }
 function renderRemoteDeck(page) {
@@ -3426,11 +3695,16 @@ function renderRemoteDeck(page) {
   if (!remaining.length) { finishRemoteRound(); return; }
   const top3 = remaining.slice(0, 3).map(id => byId[id]).filter(Boolean);
   const vedette = top3[0];
-  // Arrêt anticipé de la pioche (V1 uniquement) — mode distant : ne compte que ce qui est
-  // déjà réellement au menu (matchs actés + Super Swipes), jamais un like solo pas encore
+  const facile = typeof SIMPLE !== "undefined" && SIMPLE;
+  // Arrêt anticipé de la pioche, mode distant (V1 et Facile) : ne compte que ce qui est déjà
+  // réellement au menu (matchs actés + Super Swipes), jamais un like solo pas encore
   // confirmé par l'autre — voir remotePreviewLiked.
-  const canStop = !(typeof SIMPLE !== "undefined" && SIMPLE);
-  const nRetenus = canStop ? remotePreviewLiked(rs.cat, S.rsession, rs.likes) : 0;
+  const canStop = true;
+  const nRetenus = remotePreviewLiked(rs.cat, S.rsession, rs.likes);
+  // Facile — bandeau de matchs en temps réel : on fixe la référence "déjà vu" AVANT de
+  // construire le HTML initial, pour que rien ne s'anime au premier affichage — seuls les
+  // rafraîchissements suivants (via updateFacileMatchBanner, poll) animeront les nouveautés.
+  if (facile) _fmbSeenIds = remotePhaseState(S.rsession, rs.cat).liked.slice();
   page.classList.add("deck-mode");
   page.innerHTML = `
   ${vedette ? monoSVG(vedette) : ""}
@@ -3444,15 +3718,17 @@ function renderRemoteDeck(page) {
         <div class="count">${rs.idx + 1}/${rs.deck.length}${moodChipHTML(rs.mood)}</div>
       </div>
     </div>
+    ${facile ? `<div id="facile-match-banner" class="fmb">${facileMatchBannerHTML()}</div>` : ""}
     <div class="deck" id="deck">${top3.map((r, i) => cardHTML(r, i)).reverse().join("")}</div>
-    <div class="hint"><span class="caps">${(typeof SIMPLE !== "undefined" && SIMPLE) ? "Vous pouvez aussi faire <b>glisser</b> la carte" : "← passe · <b>glisse la carte</b> · j'adore →"}</span></div>
+    <div class="hint"><span class="caps">${facile ? "Vous pouvez aussi faire <b>glisser</b> la carte" : "← passe · <b>glisse la carte</b> · j'adore →"}</span></div>
     ${(canStop && nRetenus >= 1) ? `<button class="btn btn-ghost btn-sm stop-phase-btn" id="stop-phase">Terminer avec ${nRetenus === 1 ? "ce plat" : "ces " + nRetenus + " plats"}</button>` : ""}
     <div class="deck-actions">
       <button class="act-btn nope" id="btn-nope"><svg viewBox='0 0 24 24' width='24' height='24' fill='none' stroke='currentColor' stroke-width='3.4' stroke-linecap='round'><path d='M6.5 6 L18 18.2 M17.8 6.2 L6.2 17.8'/></svg><span class="alab">Non merci</span></button>
       <button class="act-btn info" id="btn-info"><svg viewBox='0 0 24 24' width='20' height='20' fill='none' stroke='currentColor' stroke-width='2.1' stroke-linecap='round'><path d='M2.5 12 q9.5 -10.5 19 0 q-9.5 10.5 -19 0 Z'/><circle cx='12' cy='12' r='3' fill='currentColor' stroke='none'/></svg><span class="alab">Voir</span></button>
-      <button class="act-btn super" id="btn-super" title="Super Swipe — je pose une option !" aria-label="Super Swipe : poser une option" ${superAvailable() ? "" : "disabled"}><svg viewBox='0 0 24 24' width='24' height='24' fill='currentColor' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2.6 l2.7 6 l6.5 .7 l-4.8 4.4 l1.3 6.4 l-5.7 -3.3 l-5.7 3.3 l1.3 -6.4 l-4.8 -4.4 l6.5 -.7 Z'/></svg></button>
+      <button class="act-btn super" id="btn-super" title="${facile ? "Coup de cœur : il entre au menu !" : "Super Swipe — je pose une option !"}" aria-label="${facile ? "Coup de cœur" : "Super Swipe : poser une option"}" ${superAvailable() ? "" : "disabled"}><svg viewBox='0 0 24 24' width='24' height='24' fill='currentColor' stroke='currentColor' stroke-width='1.6' stroke-linejoin='round'><path d='M12 2.6 l2.7 6 l6.5 .7 l-4.8 4.4 l1.3 6.4 l-5.7 -3.3 l-5.7 3.3 l1.3 -6.4 l-4.8 -4.4 l6.5 -.7 Z'/></svg><span class="alab">Coup de cœur</span></button>
       <button class="act-btn like" id="btn-like"><svg viewBox='0 0 24 24' width='27' height='27' fill='none' stroke='currentColor' stroke-width='2.2' stroke-linecap='round'><circle cx='12' cy='12' r='9.4'/><circle cx='8.6' cy='9.8' r='1.35' fill='currentColor' stroke='none'/><circle cx='15.4' cy='9.8' r='1.35' fill='currentColor' stroke='none'/><path d='M7.6 14.2 q4.4 4.4 8.8 0'/></svg><span class="alab">J'aime</span></button>
     </div>
+    ${superHintHTML()}
   </div>`;
   const topCard = page.querySelector(".card:not(.behind):not(.behind2)");
   fitCardText(topCard);
@@ -3488,12 +3764,32 @@ async function finishRemoteRound() {
       S.rsession.done = S.rsession.done || { p1: {}, p2: {} };
       S.rsession.done[RC.me][rs.cat] = rs.round;
     }
+    _lastRoom = "";
+    // Facile — continuité (tâche « ne plus jamais avoir à recommencer ») : si la cible n'est
+    // pas encore atteinte et que c'est immédiatement mon tour pour la suite (l'autre a déjà
+    // avancé), on enchaîne directement sur la tranche suivante du MÊME vivier déterministe
+    // (remotePhaseState / seededShuffle, contrainte n°2 — même graine, même ordre, jamais
+    // recalculés), sans jamais repasser par le tableau de bord. Si la cible vient d'être
+    // atteinte, on mémorise la catégorie pour l'état de réussite dédié (renderFacileMatchSuccess),
+    // au lieu de faire swiper dans le vide. Réservé à SIMPLE : le comportement V1 (retour
+    // systématique au tableau de bord après chaque manche) reste strictement inchangé.
+    if (typeof SIMPLE !== "undefined" && SIMPLE && S.rsession) {
+      const stNext = remotePhaseState(S.rsession, rs.cat);
+      if (!stNext.complete && !stNext.meDone) {
+        S.rswipe = { sessionId: S.rsession.id, cat: rs.cat, round: stNext.round, deck: stNext.deck, idx: 0, likes: {}, mood: null };
+        store.set("bp_rswipe", S.rswipe);
+        render(); pollRoom();
+        return;
+      }
+      if (stNext.complete) _facileSuccessCat = rs.cat;
+    }
     S.rswipe = null; store.set("bp_rswipe", null);
-    _lastRoom = ""; toast((typeof SIMPLE !== "undefined" && SIMPLE) ? "Vos choix sont envoyés" : "Swipes envoyés"); render(); pollRoom();
+    toast((typeof SIMPLE !== "undefined" && SIMPLE) ? "Vos choix sont envoyés" : "Swipes envoyés"); render(); pollRoom();
   } catch (e) { syncErr(e); }
 }
-/* Arrêt anticipé de la pioche à distance (V1 uniquement, tâche « arrêter la pioche en
-   cours ») — celui qui termine fixe l'état de la phase en abaissant session/targets/<cat>
+/* Arrêt anticipé de la pioche à distance (tâche « arrêter la pioche en cours », V1 ; exposé
+   aussi en Facile pour le bouton discret « Terminer avec ces {n} plats » — même fonction,
+   non réécrite) — celui qui termine fixe l'état de la phase en abaissant session/targets/<cat>
    au nombre de plats déjà réellement retenus : remotePhaseState() (déjà utilisé par les
    deux téléphones à chaque poll) déclare alors la catégorie complète pour tout le monde,
    sans mécanisme parallèle. L'autre téléphone reçoit simplement ce nouveau target par la
@@ -3908,6 +4204,88 @@ if ("serviceWorker" in navigator && location.protocol === "https:") {
 }
 
 /* ---------- Accueil guidé (mode facile, premier lancement) ---------- */
+/* familles « ce que vous ne mangez pas » de l'écran B (voir GOUTS_FAMILLES plus haut pour
+   l'écran A) — mêmes clés que REGIMES_EVITE */
+const REGIMES_EVITE_ITEMS = [
+  { cle: "porc", emoji: "🐖", label: "Porc" },
+  { cle: "viande-rouge", emoji: "🥩", label: "Viande rouge" },
+  { cle: "viande", emoji: "🍗", label: "Toute viande" },
+  { cle: "poisson", emoji: "🐟", label: "Poisson & fruits de mer" },
+  { cle: "laitier", emoji: "🥛", label: "Produits laitiers" },
+  { cle: "gluten", emoji: "🌾", label: "Gluten" },
+  { cle: "oeufs", emoji: "🥚", label: "Œufs" }
+];
+const OB_PILL_ACCENTS = ["#7D4453", "#B14C43", "#8A9B6E", "#9C5617", "#5762A8", "#A8389D", "#26735C"];
+/* Le libellé reste toujours en --encre (texte fixe, contraste garanti quelle que soit la
+   teinte) — seules la pastille d'émoji et la bordure de sélection portent la couleur : écran
+   A (familles de cuisine), la couleur de la vraie carte d'univers ; écran B (régimes), une
+   couleur de la palette de marque pour varier. Ni l'une ni l'autre ne change la DA. */
+function goutsPillsHTML(items, selectedSet, dataAttr) {
+  return `<div class="ob-gouts-grid">${items.map((it, k) => {
+    const fg = it.univers ? univColor(it.univers[0]).fg : OB_PILL_ACCENTS[k % OB_PILL_ACCENTS.length];
+    const on = selectedSet.has(it.cle);
+    return `
+    <button class="ob-pill${on ? " on" : ""}" data-${dataAttr}="${esc(it.cle)}" type="button" aria-pressed="${on}"
+      style="--pc:${fg};background:${mixWhite(fg, .12)}">
+      <span class="obp-emo" aria-hidden="true" style="background:${mixWhite(fg, .5)}">${it.emoji}</span><span class="obp-lbl">${esc(it.label)}</span>
+    </button>`;
+  }).join("")}</div>`;
+}
+/* écrans « goûts » : 2 écrans, choix multiples, aucune obligation (Continuer marche à 0
+   sélection) — réutilisés à la fois en fin d'accueil guidé (showOnboarding) et depuis les
+   Réglages (openGoutsFacile, « Mes goûts »). aime = bonus de tri, evite = exclusion réelle
+   (voir buildQueue / extendExclForFiltres) : deux natures différentes, jamais confondues ici,
+   seulement collectées puis écrites ensemble dans bp_gouts. */
+function paintGoutsFlow(el, opts) {
+  el.classList.add("ob-scroll");
+  const aime = new Set(opts.initial.aime || []);
+  const evite = new Set(opts.initial.evite || []);
+  let step = 0;
+  const paintA = () => {
+    el.innerHTML = `
+      <div class="ob-gouts">
+        <h2>Qu'est-ce qui vous fait plaisir ?</h2>
+        <p>Choisissez tout ce qui vous tente. Aucune obligation — vous pouvez continuer sans rien cocher.</p>
+        ${goutsPillsHTML(GOUTS_FAMILLES, aime, "aime")}
+        <div class="ob-dots"><i class="on"></i><i></i></div>
+        <button class="btn btn-primary" id="ob-next">Continuer</button>
+        ${opts.skipLabel ? `<button class="ob-skip" id="ob-skip">${esc(opts.skipLabel)}</button>` : ""}
+      </div>`;
+    el.querySelectorAll("[data-aime]").forEach(b => b.addEventListener("click", () => {
+      const k = b.dataset.aime;
+      if (aime.has(k)) aime.delete(k); else aime.add(k);
+      b.classList.toggle("on", aime.has(k)); b.setAttribute("aria-pressed", aime.has(k));
+    }));
+    el.querySelector("#ob-next").addEventListener("click", () => { step = 1; paintB(); });
+    const sk = el.querySelector("#ob-skip");
+    if (sk) sk.addEventListener("click", () => finish());
+  };
+  const paintB = () => {
+    el.innerHTML = `
+      <div class="ob-gouts">
+        <h2>Y a-t-il des choses que vous ne mangez pas ?</h2>
+        <p>Choisissez tout ce qui vous concerne. Aucune obligation — vous pouvez continuer sans rien cocher.</p>
+        ${goutsPillsHTML(REGIMES_EVITE_ITEMS, evite, "evite")}
+        <div class="caps ob-gouts-note">Vous pourrez changer tout ça à tout moment dans les réglages.</div>
+        <div class="ob-dots"><i></i><i class="on"></i></div>
+        <button class="btn btn-primary" id="ob-next">${esc(opts.finalLabel)}</button>
+        <button class="ob-skip" id="ob-back">Retour</button>
+      </div>`;
+    el.querySelectorAll("[data-evite]").forEach(b => b.addEventListener("click", () => {
+      const k = b.dataset.evite;
+      if (evite.has(k)) evite.delete(k); else evite.add(k);
+      b.classList.toggle("on", evite.has(k)); b.setAttribute("aria-pressed", evite.has(k));
+    }));
+    el.querySelector("#ob-next").addEventListener("click", () => finish());
+    el.querySelector("#ob-back").addEventListener("click", () => { step = 0; paintA(); });
+  };
+  function finish() {
+    S.gouts = { aime: Array.from(aime), evite: Array.from(evite) };
+    save.gouts();
+    opts.onDone();
+  }
+  paintA();
+}
 function showOnboarding() {
   const ETAPES = [
     { t: "Des plats vous sont proposés, un par un", p: "Ils vous plaisent ? Appuyez sur « J'aime ». Sinon, « Non merci ». C'est tout ce qu'il y a à savoir.",
@@ -3922,6 +4300,12 @@ function showOnboarding() {
   let i = 0;
   const el = document.createElement("div");
   el.id = "onboard";
+  // Les 2 écrans de goûts prolongent la séquence, APRÈS les 4 écrans d'explication —
+  // avant l'entrée effective dans l'application (bp_onboard n'est écrit qu'à leur issue).
+  const startGouts = () => paintGoutsFlow(el, {
+    initial: S.gouts, finalLabel: "C'est parti", skipLabel: "Passer",
+    onDone: () => { store.set("bp_onboard", 1); el.remove(); }
+  });
   const paint = () => {
     const e = ETAPES[i];
     el.innerHTML = `
@@ -3932,16 +4316,33 @@ function showOnboarding() {
       ${i < ETAPES.length - 1 ? '<button class="ob-skip" id="ob-skip">Passer l\'explication</button>' : ""}`;
     el.querySelector("#ob-next").addEventListener("click", () => {
       if (i < ETAPES.length - 1) { i++; paint(); }
-      else { store.set("bp_onboard", 1); el.remove(); }
+      else startGouts();
     });
     const sk = el.querySelector("#ob-skip");
-    if (sk) sk.addEventListener("click", () => { store.set("bp_onboard", 1); el.remove(); });
+    if (sk) sk.addEventListener("click", () => startGouts());
   };
   el.setAttribute("role", "dialog");
   el.setAttribute("aria-modal", "true");
   el.setAttribute("aria-label", "Bienvenue dans Bonne Pioche");
   el.setAttribute("tabindex", "-1");
   paint();
+  document.body.appendChild(el);
+  el.focus({ preventScroll: true });
+}
+/* Réglages Facile → « Mes goûts » : rouvre les deux mêmes écrans, pré-remplis avec les
+   goûts actuels, sans repasser par les 4 écrans d'explication (déjà vus). */
+function openGoutsFacile() {
+  closeModal();
+  const el = document.createElement("div");
+  el.id = "onboard";
+  el.setAttribute("role", "dialog");
+  el.setAttribute("aria-modal", "true");
+  el.setAttribute("aria-label", "Mes goûts");
+  el.setAttribute("tabindex", "-1");
+  paintGoutsFlow(el, {
+    initial: S.gouts, finalLabel: "Enregistrer", skipLabel: null,
+    onDone: () => { el.remove(); toast("Vos goûts sont enregistrés"); }
+  });
   document.body.appendChild(el);
   el.focus({ preventScroll: true });
 }
