@@ -891,9 +891,17 @@ body.simple .act-btn.super .alab{color:var(--prune-l)}
    nouvelle teinte. Le contraste des libellés reste sur --encre partout (voir app.js). */
 #onboard.ob-scroll{overflow-y:auto;justify-content:flex-start;padding-top:calc(34px + var(--safe-t));padding-bottom:34px}
 .ob-gouts{width:100%;max-width:340px}
-.ob-gouts h2{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.16;color:var(--encre)}
-.ob-gouts p{font-size:14.5px;line-height:1.5;color:#5A4A50;margin-top:8px}
+/* centrage : #onboard h2/p (règle générale plus haut) impose max-width:300px sans marge auto —
+   dans .ob-gouts (jusqu'à 340px de large), la boîte du titre/sous-titre restait donc collée au
+   bord gauche au lieu d'être centrée. margin-left/right:auto corrige la boîte elle-même (le
+   text-align:center hérité ne centrait que le TEXTE à l'intérieur d'une boîte déjà décalée). */
+.ob-gouts h2{font-family:var(--font-display);font-weight:600;font-size:26px;line-height:1.16;color:var(--encre);margin-left:auto;margin-right:auto}
+.ob-gouts p{font-size:14.5px;line-height:1.5;color:#5A4A50;margin-top:8px;margin-left:auto;margin-right:auto}
+.ob-gouts-sub{font-family:var(--font-display);font-weight:600;font-size:17px;line-height:1.2;color:var(--encre);margin:22px auto 2px;text-align:center}
 .ob-gouts-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:18px}
+/* grille à nombre impair de pastilles (ex. 7 familles) : la dernière ne doit jamais rester
+   seule collée à gauche — elle occupe alors toute la largeur de la grille. */
+.ob-gouts-grid>.ob-pill:last-child:nth-child(odd){grid-column:1/-1}
 .ob-pill{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;
   min-height:84px;border-radius:18px;border:2.5px solid transparent;padding:12px 8px;
   cursor:pointer;font-family:inherit;box-shadow:var(--sh-soft);transition:transform .12s}
@@ -901,8 +909,8 @@ body.simple .act-btn.super .alab{color:var(--prune-l)}
 .ob-pill.on{border-color:var(--pc,var(--prune))}
 .ob-pill .obp-emo{width:38px;height:38px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:19px;flex-shrink:0}
 .ob-pill .obp-lbl{font-size:13px;font-weight:800;color:var(--encre);line-height:1.25;text-align:center}
-.ob-gouts-note{margin:16px 0 4px;text-align:center;color:var(--rose);line-height:1.4}
-.ob-gouts .ob-dots{margin:18px 0 14px}
+.ob-gouts-note{margin:16px auto 4px;text-align:center;color:var(--rose);line-height:1.4}
+.ob-gouts .ob-dots{margin:18px auto 14px;justify-content:center}
 .ob-gouts .btn{width:100%}
 /* onglets actifs : un peu plus de vivacité en Facile, mêmes couleurs de marque.
    background-color explicite en plus du dégradé (fond « en dur » détectable par les audits
@@ -1269,7 +1277,7 @@ function recettesVisibles() { return S.sensibles ? RECETTES : RECETTES.filter(r 
    créateur de la session, rejoué à l'identique par les deux téléphones) côté pioche
    distante. Aucun mécanisme parallèle : c'est la contrainte n°1 de la spec. */
 /* libellés (REGIMES_EVITE_ITEMS, plus bas près de l'écran B) dérivent les mêmes clés */
-const REGIMES_EVITE = ["porc", "viande-rouge", "viande", "poisson", "laitier", "gluten", "oeufs"];
+const REGIMES_EVITE = ["porc", "viande-rouge", "viande", "poisson", "crustaces", "laitier", "gluten", "oeufs", "fruits-a-coque", "arachides", "soja", "epice"];
 /* familles de cuisine du bouton « aime » (Écran A) — mêmes libellés grand public que
    UNIV_FACILE (voir plus bas), pointant vers les vrais noms d'univers du corpus */
 const GOUTS_FAMILLES = [
@@ -1291,12 +1299,26 @@ const RE_PORC = /\b(porc|jambon|chorizo|bacon|saucisson|pancetta|prosciutto|copp
 const RE_LARDON = /\blardons?\b/;
 const RE_VIANDE_ROUGE = /\b(boeuf|agneau|veau|mouton|gibier|venaison|bison|rumsteak|steak|entrecote|bavette|onglet|faux-?filet|merguez)\b/;
 const RE_VOLAILLE = /\b(poulet|dinde|canard|volaille|pintade|caille|oie)\b/;
-const RE_POISSON = /\b(saumon|thon|cabillaud|colin|dorade|bar|flétan|fletan|hareng|lieu|lotte|maquereau|merlu|sardine|truite|morue|haddock|poisson|anchois|tilapia|crevettes?|moules?|palourdes?|calamar|poulpe|saint-jacques|crabe|homard|langoustine|huitres?|dashi|nuoc[- ]mam)\b/;
+/* poisson (chair de poisson) et crustacés/fruits de mer sont désormais deux régimes
+   séparés (écran B) : deux listes de mots-clés disjointes, jamais de recouvrement. */
+const RE_POISSON = /\b(saumon|thon|cabillaud|colin|dorade|bar|flétan|fletan|hareng|lieu|lotte|maquereau|merlu|sardine|truite|morue|haddock|poisson|anchois|tilapia|dashi|nuoc[- ]mam)\b/;
+const RE_CRUSTACES = /\b(crevettes?|moules?|palourdes?|calamars?|poulpe|saint-jacques|crabe|homard|langoustines?|langoustes?|huitres?|coquillages?)\b|fruits de mer/;
 const RE_LAIT = /\blait\b(?!\s+d[e'’]\s*(coco|amande|riz|avoine|soja|noisette))/;
 const RE_CREME = /\bcreme\b(?!\s+de\s*coco)/;
 const RE_BEURRE = /\bbeurre\b(?!\s+d[e'’]\s*(cacahuete|arachide|cacao|amande))/;
 const RE_LAITIER_AUTRE = /\b(fromage|yaourt|yogourt|parmesan|mozzarella|feta|ricotta|comte|gruyere|emmental|cheddar|reblochon|halloumi|paneer|labneh|labne|skyr|whey|caseine|mascarpone|boursin|cottage cheese)\b/;
 const RE_OEUFS = /\boeufs?\b/;
+/* fruits à coque : tout mot-clé signale l'exclusion, y compris dans un dérivé (« lait
+   d'amande ») — au contraire du lait/beurre plus haut, une allergie aux fruits à coque
+   concerne aussi ses dérivés, donc pas d'exception ici. Seule exception : « noix de coco »
+   (famille botanique différente, sans lien avec l'allergie aux fruits à coque). */
+const RE_FRUITS_A_COQUE = /\b(amandes?|noisettes?|pistaches?|cajou|macadamia|pecan|pralines?|pralin[eé]?)\b|\bnoix\b(?!\s+de\s+coco)/;
+const RE_ARACHIDE = /\b(cacahuetes?|arachides?)\b/;
+const RE_SOJA = /\b(soja|edamame|tofu|tempeh|miso|tamari)\b/;
+/* épicé/relevé : mots-clés sans ambiguïté (piment, sauces pimentées) — cherché à la fois
+   dans les ingrédients et les étapes (une note « pointe de piment » peut n'apparaître que
+   dans le geste), jamais sur un simple « poivre » ou « épices » trop vagues pour être fiables. */
+const RE_EPICE = /\b(piment|harissa|sriracha|tabasco|cayenne|sambal|gochujang)\b/;
 function hasGlutenIngredient(nomNorm) {
   if (/\bfarine\b/.test(nomNorm) && !/(avoine|mais|pois chiche|riz|sarrasin|amande|coco|chataigne)/.test(nomNorm)) return true;
   return /\b(pain|brioche|cannelloni|orzo|orge|boulgour|freekeh|semoule|epeautre|seigle|udon|soba|couscous|chapelure)\b/.test(nomNorm)
@@ -1314,6 +1336,8 @@ function regimeFlags(r) {
   const sansGluten = badges.indexOf("sans-gluten") >= 0;
   const noms = (r.ingredients || []).map(i => stripAcc(i.nom));
   const has = re => noms.some(n => re.test(n));
+  const etapesNorm = (r.etapes || []).map(e => stripAcc(e));
+  const hasEtape = re => etapesNorm.some(e => re.test(e));
   const porc = !veggie && (has(RE_PORC) || noms.some(n => RE_LARDON.test(n) && !/(dinde|volaille|poulet|canard)/.test(n)));
   const viandeRouge = !veggie && has(RE_VIANDE_ROUGE);
   const volaille = !veggie && has(RE_VOLAILLE);
@@ -1321,9 +1345,14 @@ function regimeFlags(r) {
     porc, "viande-rouge": viandeRouge,
     viande: porc || viandeRouge || volaille || (!veggie && noms.some(n => /\bviande\b/.test(n))),
     poisson: !veggie && has(RE_POISSON),
+    crustaces: !veggie && has(RE_CRUSTACES),
     laitier: has(RE_LAIT) || has(RE_CREME) || has(RE_BEURRE) || has(RE_LAITIER_AUTRE),
     gluten: sansGluten ? false : noms.some(hasGlutenIngredient),
-    oeufs: has(RE_OEUFS)
+    oeufs: has(RE_OEUFS),
+    "fruits-a-coque": has(RE_FRUITS_A_COQUE),
+    arachides: has(RE_ARACHIDE),
+    soja: has(RE_SOJA),
+    epice: has(RE_EPICE) || hasEtape(RE_EPICE) || RE_EPICE.test(stripAcc(r.nom || ""))
   };
   _regimeCache.set(r.id, f);
   return f;
@@ -1345,6 +1374,59 @@ function goutsAimeUniversSet() {
   aime.forEach(k => { const g = GOUTS_FAMILLES.find(x => x.cle === k); if (g) g.univers.forEach(u => set.add(u)); });
   _aimeUnivKey = key; _aimeUnivSet = set;
   return set;
+}
+/* ---------- Styles de cuisine « Et vos envies ? » (Facile uniquement, écran A, 2e groupe) ----------
+   Bonus de tri (jamais un filtre — voir buildQueue) portant sur des FAÇONS de manger, pas des
+   univers. Détectés uniquement à partir de signaux fiables et déjà présents dans les données
+   (badges, tempsActif, macros.kcal, mots-clés d'ingrédients et d'étapes normalisés, à l'image de
+   regimeFlags ci-dessus). Deux styles envisagés ont été écartés faute de signal propre plutôt que
+   d'en inventer un bancal : « sucré-salé » (aucun moyen fiable de distinguer un mélange voulu
+   d'une coïncidence d'ingrédients) et « doux et réconfortant » (trop subjectif, aucun champ ne
+   le capture sans faux positifs massifs). */
+const RE_MIJOTE = /\bmijot|\bbrais|\bragout/;
+const RE_FOUR = /\bau four\b|\bgratin|\benfourn/;
+const RE_PATES_RIZ = /\bpates?\b|spaghetti|penne|tagliatelle|linguine|fusilli|\briz\b|risotto|nouilles|udon|soba|vermicelle/;
+const RE_LEGUME = /\b(carottes?|courgettes?|poivrons?|aubergines?|brocolis?|choux?|epinards?|tomates?|oignons?|champignons?|potirons?|courges?|haricots? verts?|petits? pois|celeri|poireaux?|betteraves?|fenouil|navets?|radis|artichauts?|asperges?|concombres?|salade|roquette|mache|cresson|patates? douces?|panais|topinambours?|mais)\b/;
+const GOUTS_STYLES = [
+  { cle: "mijote", emoji: "🍲", label: "Plats mijotés" },
+  { cle: "four", emoji: "🥘", label: "Gratins & four" },
+  { cle: "pates-riz", emoji: "🍝", label: "Pâtes & riz" },
+  { cle: "legumes", emoji: "🥕", label: "Beaucoup de légumes" },
+  { cle: "epice", emoji: "🌶️", label: "Épicé & relevé" },
+  { cle: "leger", emoji: "🍃", label: "Léger" }
+];
+const _styleCache = new Map();
+function styleFlags(r) {
+  if (!r) return {};
+  let f = _styleCache.get(r.id);
+  if (f) return f;
+  const noms = (r.ingredients || []).map(i => stripAcc(i.nom));
+  const hay = (r.etapes || []).map(e => stripAcc(e)).join(" ") + " " + stripAcc(r.nom || "");
+  const nbLegumes = noms.filter(n => RE_LEGUME.test(n)).length;
+  f = {
+    mijote: RE_MIJOTE.test(hay),
+    four: RE_FOUR.test(hay),
+    "pates-riz": noms.some(n => RE_PATES_RIZ.test(n)),
+    legumes: nbLegumes >= 3,
+    epice: noms.some(n => RE_EPICE.test(n)) || RE_EPICE.test(hay),
+    leger: !!(r.macros && r.macros.kcal <= 400)
+  };
+  _styleCache.set(r.id, f);
+  return f;
+}
+function goutsAimeStyles() {
+  return (typeof SIMPLE !== "undefined" && SIMPLE && S.gouts && S.gouts.aime)
+    ? S.gouts.aime.filter(k => GOUTS_STYLES.some(g => g.cle === k)) : [];
+}
+/* bonus de tri cumulatif (+1.4 par style choisi satisfait) — jamais un filtre : la composition
+   du pool ne change jamais, seulement son ordre (voir buildQueue, comme aimeSet plus haut) */
+function goutsAimeStyleBonus(r) {
+  const styles = goutsAimeStyles();
+  if (!styles.length || !r) return 0;
+  const f = styleFlags(r);
+  let n = 0;
+  styles.forEach(k => { if (f[k]) n++; });
+  return n * 1.4;
 }
 /* vrai si la recette ne déclenche AUCUN des régimes évités */
 function passeGouts(r) {
@@ -1753,8 +1835,11 @@ function buildQueue(cat, target, mood) {
   // filtre. aimeSet est calculé une seule fois hors de la boucle de score.
   const facile = typeof SIMPLE !== "undefined" && SIMPLE;
   const aimeSet = facile ? goutsAimeUniversSet() : null;
+  // « envies » (styles de cuisine, Facile uniquement) : même principe, bonus cumulatif calculé
+  // par recette (voir goutsAimeStyleBonus) — jamais un filtre.
   const scoreOf = r => (isFav(r.id) ? 2.2 : 0) + (recent.has(r.id) ? -3 : 0) + (r.micro || 0) * 0.45
-    + kudosBoost(r.id) + moodBoost(r, mood) + (aimeSet && aimeSet.has(r.univers) ? 1.8 : 0) + Math.random() * 2;
+    + kudosBoost(r.id) + moodBoost(r, mood) + (aimeSet && aimeSet.has(r.univers) ? 1.8 : 0)
+    + (facile ? goutsAimeStyleBonus(r) : 0) + Math.random() * 2;
   // Filtres santé du foyer (V1 uniquement, filtre DUR) + Goûts évités (Facile uniquement,
   // filtre DUR — même mécanisme, voir passeFiltres) : le pool se restreint aux recettes
   // conformes ; si ça ne suffit pas, on complète avec les recettes non conformes les mieux
@@ -4210,10 +4295,15 @@ const REGIMES_EVITE_ITEMS = [
   { cle: "porc", emoji: "🐖", label: "Porc" },
   { cle: "viande-rouge", emoji: "🥩", label: "Viande rouge" },
   { cle: "viande", emoji: "🍗", label: "Toute viande" },
-  { cle: "poisson", emoji: "🐟", label: "Poisson & fruits de mer" },
+  { cle: "poisson", emoji: "🐟", label: "Poisson" },
+  { cle: "crustaces", emoji: "🦐", label: "Crustacés & fruits de mer" },
   { cle: "laitier", emoji: "🥛", label: "Produits laitiers" },
   { cle: "gluten", emoji: "🌾", label: "Gluten" },
-  { cle: "oeufs", emoji: "🥚", label: "Œufs" }
+  { cle: "oeufs", emoji: "🥚", label: "Œufs" },
+  { cle: "fruits-a-coque", emoji: "🌰", label: "Fruits à coque" },
+  { cle: "arachides", emoji: "🥜", label: "Arachides" },
+  { cle: "soja", emoji: "🫘", label: "Soja" },
+  { cle: "epice", emoji: "🌶️", label: "Piment / trop épicé" }
 ];
 const OB_PILL_ACCENTS = ["#7D4453", "#B14C43", "#8A9B6E", "#9C5617", "#5762A8", "#A8389D", "#26735C"];
 /* Le libellé reste toujours en --encre (texte fixe, contraste garanti quelle que soit la
@@ -4247,10 +4337,15 @@ function paintGoutsFlow(el, opts) {
         <h2>Qu'est-ce qui vous fait plaisir ?</h2>
         <p>Choisissez tout ce qui vous tente. Aucune obligation — vous pouvez continuer sans rien cocher.</p>
         ${goutsPillsHTML(GOUTS_FAMILLES, aime, "aime")}
+        <h3 class="ob-gouts-sub">Et vos envies ?</h3>
+        ${goutsPillsHTML(GOUTS_STYLES, aime, "aime")}
         <div class="ob-dots"><i class="on"></i><i></i></div>
         <button class="btn btn-primary" id="ob-next">Continuer</button>
         ${opts.skipLabel ? `<button class="ob-skip" id="ob-skip">${esc(opts.skipLabel)}</button>` : ""}
       </div>`;
+    el.scrollTop = 0; // remplacer innerHTML ne réinitialise pas le scroll du conteneur : sans
+    // ceci, changer d'écran après avoir scrollé pour atteindre « Continuer » laisserait le
+    // nouvel écran affiché à mi-hauteur (titre hors champ) — cf. bug de centrage signalé.
     el.querySelectorAll("[data-aime]").forEach(b => b.addEventListener("click", () => {
       const k = b.dataset.aime;
       if (aime.has(k)) aime.delete(k); else aime.add(k);
@@ -4271,6 +4366,7 @@ function paintGoutsFlow(el, opts) {
         <button class="btn btn-primary" id="ob-next">${esc(opts.finalLabel)}</button>
         <button class="ob-skip" id="ob-back">Retour</button>
       </div>`;
+    el.scrollTop = 0;
     el.querySelectorAll("[data-evite]").forEach(b => b.addEventListener("click", () => {
       const k = b.dataset.evite;
       if (evite.has(k)) evite.delete(k); else evite.add(k);
